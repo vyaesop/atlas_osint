@@ -42,14 +42,19 @@ ICD-203 estimative language (`services/estimative.py` → confidence summaries g
 (`models/annotation.py` kinds: note/assumption/dissent/devils_advocate, 3 endpoints).
 Migration `0005_tradecraft`. 21 new tests (all green).
 
-## Cluster 3 — Temporal & Geospatial  (3/5 done; #10/#11 frontend pending)
+## Cluster 3 — Temporal & Geospatial ✅ DONE
 | # | Feature | Status |
 |---|---------|--------|
 | 7 | Geospatial map view (Leaflet + OpenStreetMap) | ✅ |
 | 8 | Spatiotemporal pattern-of-life reconstruction | ✅ |
 | 9 | Co-location / co-travel analysis → suggested edges | ✅ |
-| 10 | Temporal graph replay (time-scrubber) | ⬜ (frontend; next) |
-| 11 | N-entity swimlane activity timelines | 🟡 (2-entity compare exists) |
+| 10 | Temporal graph replay (time-scrubber) | ✅ |
+| 11 | N-entity swimlane activity timelines | ✅ |
+
+**Delivered:** geo backend (`services/geo.py` + 3 endpoints); frontend `MapView`
+(Leaflet/OSM), `Swimlanes` (`/timeline`, N-entity lanes on a shared axis), and
+**temporal replay** in the explorer (date scrubber + play/pause; dated edges
+appear at their start, ended edges fade). 11 geo tests; `tsc` + `next build` clean.
 
 **Delivered:** `services/geo.py` (flexible coord parsing + haversine + visit
 reconstruction), `/api/v1/geo/` endpoints (`map`, `pattern-of-life/{id}`,
@@ -127,4 +132,6 @@ Added deps: `leaflet`, `react-leaflet`, `@types/leaflet`. 11 new tests. Backend
   ACH + Admiralty grading + ICD-203 + annotations. Migration 0005. 103 passing.
 - **2026-06-28** — ✅ Cluster 3 geospatial core: #7, #8, #9. `services/geo.py`
   + 3 endpoints + Leaflet/OSM `MapView` + `/map` route. 110 passing, build clean.
-  #10 (replay) and #11 (swimlanes) remain — frontend-temporal, queued next.
+- **2026-06-28** — Codebase pushed to github.com/vyaesop/atlas_osint (private).
+- **2026-06-28** — ✅ Cluster 3 complete: added #10 temporal replay (explorer
+  scrubber) + #11 N-entity swimlanes (`/timeline`). Build clean. Starting Cluster 4.

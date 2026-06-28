@@ -49,6 +49,11 @@ function Explorer({ onLogout }: { onLogout: () => void }) {
   const [pathNodeIds, setPathNodeIds] = useState<Set<string>>(new Set());
   const [pathEdgeIds, setPathEdgeIds] = useState<Set<string>>(new Set());
 
+  // Temporal replay (#10).
+  const [replayOn, setReplayOn] = useState(false);
+  const [playing, setPlaying] = useState(false);
+  const [cutoff, setCutoff] = useState(0); // epoch ms
+
   const [rfNodes, setRfNodes, onNodesChange] = useNodesState<EntityNodeData>([]);
   const [rfEdges, setRfEdges, onEdgesChange] = useEdgesState([]);
   const { fitView } = useReactFlow();
@@ -162,9 +167,89 @@ function Explorer({ onLogout }: { onLogout: () => void }) {
     setPositions(computeLayout(layout, Object.values(entities), Object.values(rels)));
   }, [entities, rels, layout]);
 
+  // --- Temporal replay (#10) ---
+  const dateBounds = useMemo(() => {
+    const times: number[] = [];
+    for (const r of Object.values(rels)) {
+      for (const d of [r.start_date, r.end_date]) {
+        if (d) {
+          const t = new Date(d).getTime();
+          if (!Number.isNaN(t)) times.push(t);
+        }
+      }
+    }
+    if (times.length === 0) return null;
+    return { min: Math.min(...times), max: Math.max(...times) };
+  }, [rels]);
+
+  // Which nodes/edges are visible at the current cutoff (null ⇒ show all).
+  const replayVisible = useMemo(() => {
+    if (!replayOn) return null;
+    const edgeIds = new Set<string>();
+    const endedIds = new Set<string>();
+    const nodeIds = new Set<string>();
+    const allRels = Object.values(rels);
+    const connected = new Set<string>();
+    for (const r of allRels) {
+      connected.add(r.source_id);
+      connected.add(r.target_id);
+      const start = r.start_date ? new Date(r.start_date).getTime() : null;
+      // Undated edges are an always-present baseline; dated edges appear at start.
+      if (start !== null && start > cutoff) continue;
+      edgeIds.add(r.id);
+      const end = r.end_date ? new Date(r.end_date).getTime() : null;
+      if (end !== null && end < cutoff) endedIds.add(r.id);
+      nodeIds.add(r.source_id);
+      nodeIds.add(r.target_id);
+    }
+    if (selected) nodeIds.add(selected);
+    // Standalone nodes (never connected) remain visible.
+    for (const id of Object.keys(entities)) {
+      if (!connected.has(id)) nodeIds.add(id);
+    }
+    return { edgeIds, endedIds, nodeIds };
+  }, [replayOn, cutoff, rels, entities, selected]);
+
+  // Advance the cutoff while playing.
+  useEffect(() => {
+    if (!playing || !replayOn || !dateBounds) return;
+    const span = dateBounds.max - dateBounds.min || 1;
+    const id = setInterval(() => {
+      setCutoff((c) => {
+        const next = c + span / 60;
+        if (next >= dateBounds.max) {
+          setPlaying(false);
+          return dateBounds.max;
+        }
+        return next;
+      });
+    }, 200);
+    return () => clearInterval(id);
+  }, [playing, replayOn, dateBounds]);
+
+  const toggleReplay = useCallback(() => {
+    setReplayOn((v) => {
+      const next = !v;
+      if (next && dateBounds) setCutoff(dateBounds.max);
+      if (!next) setPlaying(false);
+      return next;
+    });
+  }, [dateBounds]);
+
+  const playPause = useCallback(() => {
+    if (!dateBounds) return;
+    setPlaying((p) => {
+      if (!p && cutoff >= dateBounds.max) setCutoff(dateBounds.min);
+      return !p;
+    });
+  }, [dateBounds, cutoff]);
+
   // Build React Flow nodes from domain state + positions + selection + overlays.
   useEffect(() => {
-    const nodes: Node<EntityNodeData>[] = Object.values(entities).map((e) => ({
+    const visibleEntities = replayVisible
+      ? Object.values(entities).filter((e) => replayVisible.nodeIds.has(e.id))
+      : Object.values(entities);
+    const nodes: Node<EntityNodeData>[] = visibleEntities.map((e) => ({
       id: e.id,
       type: "entity",
       position: positions[e.id] ?? { x: 0, y: 0 },
@@ -182,11 +267,15 @@ function Explorer({ onLogout }: { onLogout: () => void }) {
       },
     }));
     setRfNodes(nodes);
-  }, [entities, positions, expanded, selected, centralityMap, communityMap, pathNodeIds, setRfNodes]);
+  }, [entities, positions, expanded, selected, centralityMap, communityMap, pathNodeIds, replayVisible, setRfNodes]);
 
   useEffect(() => {
-    const edges: Edge[] = Object.values(rels).map((r) => {
+    const visibleRels = replayVisible
+      ? Object.values(rels).filter((r) => replayVisible.edgeIds.has(r.id))
+      : Object.values(rels);
+    const edges: Edge[] = visibleRels.map((r) => {
       const onPath = pathEdgeIds.has(r.id);
+      const ended = replayVisible?.endedIds.has(r.id) ?? false;
       return {
         id: r.id,
         source: r.source_id,
@@ -194,13 +283,19 @@ function Explorer({ onLogout }: { onLogout: () => void }) {
         label: prettyRel(r.type),
         animated: onPath,
         markerEnd: { type: MarkerType.ArrowClosed, color: onPath ? PATH_HIGHLIGHT : "#64748b" },
-        style: { stroke: onPath ? PATH_HIGHLIGHT : "#475569", strokeWidth: onPath ? 3 : 1.5 },
+        style: {
+          stroke: onPath ? PATH_HIGHLIGHT : "#475569",
+          strokeWidth: onPath ? 3 : 1.5,
+          // Relationships that have ended by the cutoff fade out and dash.
+          opacity: ended ? 0.35 : 1,
+          strokeDasharray: ended ? "4 4" : undefined,
+        },
         labelStyle: { fill: onPath ? PATH_HIGHLIGHT : "#94a3b8", fontSize: 10 },
         labelBgStyle: { fill: "#0b1020", fillOpacity: 0.85 },
       };
     });
     setRfEdges(edges);
-  }, [rels, pathEdgeIds, setRfEdges]);
+  }, [rels, pathEdgeIds, replayVisible, setRfEdges]);
 
   // Fit the view whenever the node count changes (focus / expand / collapse).
   const nodeCount = Object.keys(entities).length;
@@ -234,6 +329,16 @@ function Explorer({ onLogout }: { onLogout: () => void }) {
         <div className="flex items-center gap-4">
           <span className="text-sm font-semibold text-slate-200">Atlas</span>
           <SearchBar onSelect={(id) => void focus(id)} />
+          <button
+            onClick={toggleReplay}
+            disabled={!dateBounds}
+            title={dateBounds ? "Replay the network over time" : "No dated relationships to replay"}
+            className={`rounded px-2 py-1 text-xs ${
+              replayOn ? "bg-amber-600 text-white" : "bg-panel text-slate-300"
+            } disabled:opacity-40`}
+          >
+            ⏱ Replay
+          </button>
         </div>
         <Toolbar
           layout={layout}
@@ -292,6 +397,31 @@ function Explorer({ onLogout }: { onLogout: () => void }) {
       <div className="absolute bottom-4 left-4 z-10">
         <Legend />
       </div>
+
+      {replayOn && dateBounds && (
+        <div className="absolute bottom-4 left-1/2 z-20 flex w-[28rem] max-w-[80vw] -translate-x-1/2 items-center gap-3 rounded-lg border border-slate-700 bg-panel/95 px-4 py-2 shadow-lg">
+          <button
+            onClick={playPause}
+            className="rounded bg-amber-600 px-2 py-1 text-xs font-semibold text-white hover:bg-amber-500"
+          >
+            {playing ? "❚❚" : "▶"}
+          </button>
+          <input
+            type="range"
+            min={dateBounds.min}
+            max={dateBounds.max}
+            value={cutoff}
+            onChange={(e) => {
+              setPlaying(false);
+              setCutoff(Number(e.target.value));
+            }}
+            className="flex-1 accent-amber-500"
+          />
+          <time className="w-24 shrink-0 text-right font-mono text-xs text-amber-300">
+            {new Date(cutoff).toISOString().slice(0, 10)}
+          </time>
+        </div>
+      )}
 
       {empty && (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">

@@ -39,12 +39,20 @@ export default function ExplorePage() {
 
   return (
     <>
-      <Link
-        href="/map"
-        className="fixed bottom-4 right-4 z-[1000] rounded-full bg-teal-600 px-4 py-2 text-xs font-semibold text-white shadow-lg hover:bg-teal-500"
-      >
-        🗺 Map view
-      </Link>
+      <div className="fixed bottom-4 right-4 z-[1000] flex gap-2">
+        <Link
+          href="/timeline"
+          className="rounded-full bg-sky-700 px-4 py-2 text-xs font-semibold text-white shadow-lg hover:bg-sky-600"
+        >
+          ⏱ Timelines
+        </Link>
+        <Link
+          href="/map"
+          className="rounded-full bg-teal-600 px-4 py-2 text-xs font-semibold text-white shadow-lg hover:bg-teal-500"
+        >
+          🗺 Map view
+        </Link>
+      </div>
       <GraphExplorer onLogout={logout} />
     </>
   );
