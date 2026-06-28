@@ -1,0 +1,130 @@
+# Atlas — Intelligence Feature Backlog & Progress
+
+Tracker for the 52 post-Phase-6 intelligence features. Single source of truth
+for what's built vs. pending. Tell me a number to **skip** and I'll mark it `⏭️`.
+
+**Legend:** ⬜ not started · 🟡 partial / foundation exists · 🔨 in progress · ✅ done · ⏭️ skipped
+
+**Constraints:** zero budget — free/open tooling only. Maps = OpenStreetMap/Leaflet.
+AI = **Google Gemini** (`AI_PROVIDER=gemini`, `gemini-2.0-flash`), no Claude/paid APIs.
+
+---
+
+## Cluster 1 — Advanced Graph Analytics  (pure backend, NetworkX) ✅ DONE
+| # | Feature | Status |
+|---|---------|--------|
+| 14 | Hidden-broker + missing-intermediary detection | ✅ |
+| 16 | Role inference (financier/facilitator/operative) from graph position | ✅ |
+| 48 | Graph anomaly detection (structural outliers, new hubs) | ✅ |
+| 50 | What-if node-removal / network-fragmentation simulation | ✅ |
+| 51 | Influence / diffusion propagation modeling | ✅ |
+| 52 | Cross-case subgraph motif mining | ✅ (graph-wide; cross-case once #31 lands) |
+
+**Delivered:** `analytics/advanced.py` (pure NetworkX), 6 new endpoints under
+`/api/v1/analytics/` (`brokers`, `roles`, `anomalies`, `resilience`,
+`influence`, `motifs`), result schemas, 14 unit + 5 API tests (all green).
+
+## Cluster 2 — Tradecraft & Analytic Rigor ✅ DONE (5/6; #5 still partial)
+| # | Feature | Status |
+|---|---------|--------|
+| 1 | ACH module — competing-hypotheses scoring over evidence/stance | ✅ |
+| 2 | ICD-203 estimative-probability vocabulary on confidence scores | ✅ |
+| 3 | Source reliability grading (Admiralty A–F × 1–6) | ✅ |
+| 4 | Key-assumptions check + devil's-advocacy flags | ✅ (annotations) |
+| 5 | Full analytic lineage/provenance graph | 🟡 (deferred — needs a dedicated provenance view) |
+| 6 | Analyst dissent / dissenting-footnote capture per node | ✅ (annotations) |
+
+**Delivered:** ACH (`models/ach.py`, `services/ach.py` pure scorer, `crud/ach.py`,
+9 endpoints under `/api/v1/ach/`); Admiralty grading (`services/source_grading.py`
++ `Evidence.source_reliability`/`info_credibility` → feeds confidence engine);
+ICD-203 estimative language (`services/estimative.py` → confidence summaries gain
+`estimative_label`/`probability_band`/`analytic_confidence`); analytic annotations
+(`models/annotation.py` kinds: note/assumption/dissent/devils_advocate, 3 endpoints).
+Migration `0005_tradecraft`. 21 new tests (all green).
+
+## Cluster 3 — Temporal & Geospatial  (3/5 done; #10/#11 frontend pending)
+| # | Feature | Status |
+|---|---------|--------|
+| 7 | Geospatial map view (Leaflet + OpenStreetMap) | ✅ |
+| 8 | Spatiotemporal pattern-of-life reconstruction | ✅ |
+| 9 | Co-location / co-travel analysis → suggested edges | ✅ |
+| 10 | Temporal graph replay (time-scrubber) | ⬜ (frontend; next) |
+| 11 | N-entity swimlane activity timelines | 🟡 (2-entity compare exists) |
+
+**Delivered:** `services/geo.py` (flexible coord parsing + haversine + visit
+reconstruction), `/api/v1/geo/` endpoints (`map`, `pattern-of-life/{id}`,
+`colocation`); frontend `MapView.tsx` (react-leaflet + free OSM tiles, vector
+markers, movement polyline, co-location panel), `/map` route + explorer link.
+Added deps: `leaflet`, `react-leaflet`, `@types/leaflet`. 11 new tests. Backend
+110 passing; frontend `tsc` + `next build` clean.
+
+## Cluster 4 — Relationship & Entity Intelligence
+| # | Feature | Status |
+|---|---------|--------|
+| 12 | Link prediction / suggested edges (Adamic-Adar, common-neighbor) | ✅ (via `/analytics/brokers` suggested_links) |
+| 13 | Entity resolution / deduplication with merge-unmerge audit | ⬜ |
+| 15 | Cell / org-hierarchy structure inference | ⬜ |
+
+## Cluster 5 — OSINT & Ingestion
+| # | Feature | Status |
+|---|---------|--------|
+| 17 | Transform/connector framework (Maltego-style enrichment) | ⬜ |
+| 18 | Sanctions/PEP/watchlist screening (OFAC/UN/EU) | ⬜ |
+| 19 | RSS/news/feed continuous monitoring via worker | ⬜ |
+| 20 | Image intelligence (EXIF, OCR, reverse search) | ⬜ |
+| 21 | Audio/video transcription → extraction | ⬜ |
+| 22 | Email/chat ingestion (PST/MBOX) for comms networks | ⬜ |
+| 23 | Cryptocurrency / on-chain flow tracing | ⬜ |
+
+## Cluster 6 — AI / Agentic (Gemini)
+| # | Feature | Status |
+|---|---------|--------|
+| 24 | Natural-language → graph query | ⬜ |
+| 25 | RAG over corpus with source citations | ⬜ |
+| 26 | Auto-generated intelligence reports / target packages | ⬜ |
+| 27 | Agentic investigation assistant | ⬜ |
+| 28 | Proactive contradiction/anomaly alert feed | 🟡 |
+| 29 | Confidence-aware AI responses (cite + refuse beyond evidence) | 🟡 |
+| 30 | Deepfake / synthetic-media detection flag | ⬜ |
+
+## Cluster 7 — Collaboration & Casework
+| # | Feature | Status |
+|---|---------|--------|
+| 31 | Cases/investigations as first-class objects | ⬜ |
+| 32 | Tasking & RFI tracking | ⬜ |
+| 33 | Real-time multi-analyst collaboration (presence, comments) | ⬜ |
+| 34 | Review → dissemination workflow with markings | ⬜ |
+| 35 | Analytic notebook with embedded live graph snapshots | ⬜ |
+| 36 | Saved views / bookmarks / pinboards | ⬜ |
+
+## Cluster 8 — Security & Governance
+| # | Feature | Status |
+|---|---------|--------|
+| 37 | Classification & handling markings (per entity/evidence) | ⬜ |
+| 38 | ABAC + compartmentalization (beyond 3 roles) | 🟡 |
+| 39 | Tamper-evident hash-chained audit log | 🟡 |
+| 40 | Data retention / purge / legal-hold policies | ⬜ |
+| 41 | Redaction & sanitized export | ⬜ |
+| 42 | Anomalous-analyst (insider-misuse) detection | ⬜ |
+
+## Cluster 9 — Visualization & UX
+| # | Feature | Status |
+|---|---------|--------|
+| 43 | Synchronized linked views (graph ⇄ map ⇄ timeline ⇄ table) | ⬜ |
+| 44 | Graph styling rules engine | 🟡 |
+| 45 | WebGL large-graph rendering + semantic zoom/clustering | ⬜ |
+| 46 | Histogram/facet brush filters | ⬜ |
+| 47 | Network diff ("what changed since last week") | ⬜ |
+| 49 | Per-entity risk scoring | ⬜ |
+
+---
+
+## Changelog
+- **2026-06-28** — Tracker created. Activated Gemini provider (`AI_PROVIDER=gemini`).
+- **2026-06-28** — ✅ Cluster 1 complete: #12, #14, #16, #48, #50, #51, #52.
+  `analytics/advanced.py` + 6 endpoints + 19 tests. Full suite 82 passing.
+- **2026-06-28** — ✅ Cluster 2 complete: #1, #2, #3, #4, #6 (#5 deferred).
+  ACH + Admiralty grading + ICD-203 + annotations. Migration 0005. 103 passing.
+- **2026-06-28** — ✅ Cluster 3 geospatial core: #7, #8, #9. `services/geo.py`
+  + 3 endpoints + Leaflet/OSM `MapView` + `/map` route. 110 passing, build clean.
+  #10 (replay) and #11 (swimlanes) remain — frontend-temporal, queued next.

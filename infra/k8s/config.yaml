@@ -1,0 +1,49 @@
+# Non-secret runtime configuration. Datastore *hosts* point at managed cloud
+# services in production (provisioned by Terraform); secrets live in the Secret
+# below. Update the placeholders or patch per-environment with Kustomize.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: atlas-config
+  namespace: atlas
+data:
+  ENVIRONMENT: "production"
+  API_V1_PREFIX: "/api/v1"
+  BACKEND_CORS_ORIGINS: '["https://atlas.example.com"]'
+
+  POSTGRES_HOST: "atlas-postgres.internal"      # managed Postgres endpoint
+  POSTGRES_PORT: "5432"
+  POSTGRES_DB: "atlas"
+
+  NEO4J_URI: "bolt://atlas-neo4j.internal:7687"
+  NEO4J_DATABASE: "neo4j"
+
+  REDIS_URL: "redis://atlas-redis.internal:6379/0"
+
+  SEARCH_BACKEND: "opensearch"
+  OPENSEARCH_URL: "https://atlas-opensearch.internal:9200"
+  OPENSEARCH_INDEX: "atlas-entities"
+
+  ANALYTICS_BACKEND: "networkx"
+  AI_PROVIDER: "heuristic"
+
+  CACHE_ENABLED: "true"
+  JOBS_ENABLED: "true"
+---
+# Template only — never commit real secrets. Create the real Secret out-of-band
+# (sealed-secrets / external-secrets / cloud secret manager).
+apiVersion: v1
+kind: Secret
+metadata:
+  name: atlas-secrets
+  namespace: atlas
+type: Opaque
+stringData:
+  SECRET_KEY: "change-me-32-byte-random"
+  POSTGRES_USER: "atlas"
+  POSTGRES_PASSWORD: "change-me"
+  NEO4J_USER: "neo4j"
+  NEO4J_PASSWORD: "change-me"
+  # Optional AI keys:
+  GEMINI_API_KEY: ""
+  ANTHROPIC_API_KEY: ""

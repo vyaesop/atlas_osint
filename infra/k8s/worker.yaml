@@ -1,0 +1,45 @@
+# arq worker: drains projection/indexing/ingestion jobs off the request path.
+# Scale independently of the API based on queue depth (KEDA + Redis scaler is a
+# good fit; a CPU HPA is the simpler starting point shown here).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: atlas-worker
+  namespace: atlas
+  labels: { app: atlas-worker }
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: atlas-worker }
+  template:
+    metadata:
+      labels: { app: atlas-worker }
+    spec:
+      containers:
+        - name: worker
+          image: ghcr.io/your-org/atlas-backend:latest
+          command: ["arq", "app.jobs.worker.WorkerSettings"]
+          envFrom:
+            - configMapRef: { name: atlas-config }
+            - secretRef: { name: atlas-secrets }
+          resources:
+            requests: { cpu: "250m", memory: "512Mi" }
+            limits: { cpu: "1", memory: "1Gi" }
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: atlas-worker
+  namespace: atlas
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: atlas-worker
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target: { type: Utilization, averageUtilization: 75 }

@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: atlas-frontend
+  namespace: atlas
+  labels: { app: atlas-frontend }
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: atlas-frontend }
+  template:
+    metadata:
+      labels: { app: atlas-frontend }
+    spec:
+      containers:
+        - name: frontend
+          image: ghcr.io/your-org/atlas-frontend:latest
+          ports:
+            - containerPort: 3000
+          env:
+            # Server-side rewrites proxy /api/* to the backend Service.
+            - name: BACKEND_URL
+              value: "http://atlas-backend.atlas.svc.cluster.local"
+          resources:
+            requests: { cpu: "100m", memory: "256Mi" }
+            limits: { cpu: "500m", memory: "512Mi" }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: atlas-frontend
+  namespace: atlas
+spec:
+  selector: { app: atlas-frontend }
+  ports:
+    - port: 80
+      targetPort: 3000
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: atlas
+  namespace: atlas
+  annotations:
+    # cert-manager + nginx example; swap for your ingress controller.
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts: ["atlas.example.com"]
+      secretName: atlas-tls
+  rules:
+    - host: atlas.example.com
+      http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: atlas-backend
+                port: { number: 80 }
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: atlas-frontend
+                port: { number: 80 }

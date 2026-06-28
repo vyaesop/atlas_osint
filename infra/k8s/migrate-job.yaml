@@ -1,0 +1,19 @@
+# Run DB migrations on deploy. Wire this as a Helm/Argo pre-sync hook, or apply
+# it manually before rolling out a new backend image.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: atlas-migrate
+  namespace: atlas
+spec:
+  backoffLimit: 3
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: migrate
+          image: ghcr.io/your-org/atlas-backend:latest
+          command: ["alembic", "upgrade", "head"]
+          envFrom:
+            - configMapRef: { name: atlas-config }
+            - secretRef: { name: atlas-secrets }

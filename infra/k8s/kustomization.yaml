@@ -1,0 +1,16 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: atlas
+resources:
+  - namespace.yaml
+  - config.yaml
+  - backend.yaml
+  - worker.yaml
+  - frontend.yaml
+  - migrate-job.yaml
+
+# Datastores (Postgres, Neo4j, OpenSearch, Redis) are intentionally NOT in here.
+# In production they are managed cloud services provisioned by Terraform
+# (infra/terraform) and referenced by host in config.yaml. For a self-hosted
+# cluster, add StatefulSets/operators (e.g. CloudNativePG, Neo4j Helm chart,
+# OpenSearch operator, Redis Helm chart) as a separate overlay.
