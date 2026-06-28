@@ -111,3 +111,67 @@ class AnnotationKind(str, enum.Enum):
     ASSUMPTION = "assumption"          # a key assumption underpinning analysis
     DISSENT = "dissent"               # a recorded analytic disagreement
     DEVILS_ADVOCATE = "devils_advocate"  # a deliberate challenge to the line
+
+
+class Classification(str, enum.Enum):
+    """Handling / classification markings (#34, used by Cluster 8 too)."""
+
+    UNCLASSIFIED = "unclassified"
+    OFFICIAL = "official"
+    CONFIDENTIAL = "confidential"
+    SECRET = "secret"
+    TOP_SECRET = "top_secret"
+
+
+class CaseStatus(str, enum.Enum):
+    """Lifecycle of an investigation case incl. the review→dissemination flow."""
+
+    OPEN = "open"
+    ACTIVE = "active"
+    IN_REVIEW = "in_review"
+    RELEASED = "released"
+    CLOSED = "closed"
+    ARCHIVED = "archived"
+
+
+class CaseItemType(str, enum.Enum):
+    ENTITY = "entity"
+    RELATIONSHIP = "relationship"
+    DOCUMENT = "document"
+    ACH = "ach"
+    SAVED_VIEW = "saved_view"
+
+
+class TaskKind(str, enum.Enum):
+    TASK = "task"
+    RFI = "rfi"   # request for information
+
+
+class TaskStatus(str, enum.Enum):
+    OPEN = "open"
+    IN_PROGRESS = "in_progress"
+    ANSWERED = "answered"
+    CLOSED = "closed"
+
+
+class CommentTargetType(str, enum.Enum):
+    CASE = "case"
+    ENTITY = "entity"
+    RELATIONSHIP = "relationship"
+    TASK = "task"
+
+
+class SavedViewKind(str, enum.Enum):
+    GRAPH = "graph"
+    MAP = "map"
+    TIMELINE = "timeline"
+    DASHBOARD = "dashboard"
+    PINBOARD = "pinboard"
+
+
+class NotebookBlockKind(str, enum.Enum):
+    TEXT = "text"
+    GRAPH = "graph"        # live snapshot: references entity ids / a saved view
+    TIMELINE = "timeline"
+    ENTITY = "entity"
+    QUERY = "query"

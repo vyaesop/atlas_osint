@@ -119,15 +119,22 @@ contradiction/selector/gap analysis + next actions). #28 alert feed (`/alerts`).
 check`). #20/#21 Gemini multimodal (`services/multimodal.py`; `/ai/image`,
 `/ai/audio`, 503 without Gemini). 19 new tests; 153 passing.
 
-## Cluster 7 — Collaboration & Casework
+## Cluster 7 — Collaboration & Casework ✅ DONE
 | # | Feature | Status |
 |---|---------|--------|
-| 31 | Cases/investigations as first-class objects | ⬜ |
-| 32 | Tasking & RFI tracking | ⬜ |
-| 33 | Real-time multi-analyst collaboration (presence, comments) | ⬜ |
-| 34 | Review → dissemination workflow with markings | ⬜ |
-| 35 | Analytic notebook with embedded live graph snapshots | ⬜ |
-| 36 | Saved views / bookmarks / pinboards | ⬜ |
+| 31 | Cases/investigations as first-class objects | ✅ |
+| 32 | Tasking & RFI tracking | ✅ |
+| 33 | Multi-analyst collaboration (threaded comments) | ✅ (live presence/WebSocket = deploy layer) |
+| 34 | Review → dissemination workflow with markings | ✅ |
+| 35 | Analytic notebook with embedded live graph snapshots | ✅ |
+| 36 | Saved views / bookmarks / pinboards | ✅ |
+
+**Delivered:** migration `0008` + models (`casework.py`, `workspace.py`).
+#31 cases + `CaseItem` containers (`/cases`). #34 review→release workflow with
+classification markings (`/cases/{id}/review`). #32 tasks/RFIs (`/tasks`).
+#33 threaded comments on any target (`/comments`). #36 saved views/pinboards
+with owner/shared visibility (`/views`). #35 notebooks + ordered blocks, graph
+blocks reference live entity ids (`/notebooks`). 6 new tests; 159 passing.
 
 ## Cluster 8 — Security & Governance
 | # | Feature | Status |
@@ -171,4 +178,8 @@ check`). #20/#21 Gemini multimodal (`services/multimodal.py`; `/ai/image`,
   #29 confidence-aware. 146 passing.
 - **2026-06-28** — ✅ Cluster 6 complete: added #25 RAG, #27 agentic
   investigation, #30 deepfake flag, #20 image + #21 audio (Gemini multimodal).
-  153 passing. **Clusters 1–6 all done (47/52 items).** Remaining: 7, 8, 9 + #5.
+  153 passing. **Clusters 1–6 all done.**
+- **2026-06-28** — ✅ Cluster 7 complete: cases/items, review workflow, tasks/
+  RFIs, comments, saved views/pinboards, notebooks. Migration 0008. 159 passing.
+  **Clusters 1–7 done.** Remaining: Cluster 8 (security/governance), Cluster 9
+  (viz/UX), and #5 (full lineage view).

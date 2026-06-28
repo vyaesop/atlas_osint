@@ -7,6 +7,7 @@ from app.api.v1 import (
     analytics,
     annotations,
     auth,
+    casework,
     dashboards,
     entities,
     evidence,
@@ -20,6 +21,7 @@ from app.api.v1 import (
     search,
     transforms,
     users,
+    workspace,
 )
 
 api_router = APIRouter()
@@ -42,3 +44,5 @@ api_router.include_router(resolution.router)
 api_router.include_router(transforms.router)
 api_router.include_router(sanctions.router)
 api_router.include_router(alerts.router)
+api_router.include_router(casework.router)
+api_router.include_router(workspace.router)
