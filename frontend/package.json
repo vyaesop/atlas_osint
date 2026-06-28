@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "d3-force": "3.0.0",
@@ -20,6 +21,7 @@
     "reactflow": "11.11.4"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.1",
     "@types/d3-force": "3.0.10",
     "@types/dagre": "0.7.52",
     "@types/leaflet": "^1.9.12",

@@ -14,6 +14,7 @@ from dataclasses import dataclass, field
 from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.abac import user_can_access
 from app.models.entity import Entity
 from app.models.relationship import Relationship
 from app.services import confidence, sanctions
@@ -85,8 +86,18 @@ async def score_entity(db: AsyncSession, entity: Entity) -> RiskScore:
                      band=_band(score), factors=factors, reasons=reasons)
 
 
-async def top_risky(db: AsyncSession, *, limit: int = 25, max_scan: int = 500) -> list[RiskScore]:
+async def top_risky(
+    db: AsyncSession, *, limit: int = 25, max_scan: int = 500, user=None
+) -> list[RiskScore]:
+    """Highest-risk entities. When ``user`` is given, only entities the user is
+    cleared for are scanned/returned — the leaderboard must not surface the names
+    of compartmented entities to an uncleared analyst."""
     entities = list((await db.execute(select(Entity).limit(max_scan))).scalars().all())
+    if user is not None:
+        entities = [
+            e for e in entities
+            if user_can_access(user, classification=e.classification, compartments=e.compartments)
+        ]
     scored = [await score_entity(db, e) for e in entities]
     scored.sort(key=lambda s: s.score, reverse=True)
     return scored[:limit]

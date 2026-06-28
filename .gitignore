@@ -22,6 +22,11 @@ node_modules/
 dist/
 build/
 
+# Playwright e2e artifacts
+test-results/
+playwright-report/
+playwright/.cache/
+
 # OS / editor
 .DS_Store
 Thumbs.db
@@ -38,3 +43,7 @@ neo4jdata/
 *.db
 *.sqlite
 *.sqlite3
+
+# Cached open-data dumps used by the seed scripts
+_wikidata_cache/
+_geonames_cache/

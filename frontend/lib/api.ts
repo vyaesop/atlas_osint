@@ -28,6 +28,9 @@ import type {
   SummaryResponse,
   TimelineResponse,
   TokenPair,
+  ConfidenceProvenance,
+  DuplicatesResponse,
+  EntityReport,
 } from "./types";
 
 const BASE = "/api/v1";
@@ -202,4 +205,14 @@ export const api = {
     request<NetworkDiff>(`/insights/diff?since=${encodeURIComponent(sinceIso)}`),
 
   lineage: (id: string) => request<Lineage>(`/insights/lineage/${id}`),
+
+  // --- Golden workflow (Task 7) ---
+  confidenceProvenance: (id: string) =>
+    request<ConfidenceProvenance>(`/entities/${id}/confidence/provenance`),
+
+  duplicates: (threshold = 0.82) =>
+    request<DuplicatesResponse>(`/resolution/duplicates?threshold=${threshold}`),
+
+  report: (id: string) =>
+    request<EntityReport>(`/ai/report/entity/${id}`, { method: "POST" }),
 };

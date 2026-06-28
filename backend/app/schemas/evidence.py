@@ -98,3 +98,24 @@ class ConfidenceSummary(BaseModel):
     estimative_label: str
     probability_band: str
     analytic_confidence: str
+
+
+class EvidenceContributionRead(BaseModel):
+    """One evidence item's role in a confidence score (provenance, Task 13)."""
+
+    evidence_id: uuid.UUID
+    title: str
+    source: str | None
+    url: str | None
+    stance: EvidenceStance
+    reliability: float
+    admiralty_code: str | None
+    verified: bool
+    counted: bool
+    reason: str
+
+
+class ConfidenceProvenance(ConfidenceSummary):
+    """Confidence summary plus the per-evidence provenance behind every number."""
+
+    contributions: list[EvidenceContributionRead]

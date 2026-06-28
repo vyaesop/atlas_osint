@@ -106,10 +106,11 @@ class Settings(BaseSettings):
     ANALYTICS_MAX_NODES: int = 5000
 
     # ---- AI extraction (Phase 4) ----
-    # "heuristic" (default; dependency-free, runs locally with no API key),
-    # "gemini" (Google Gemini; requires GEMINI_API_KEY — has a free tier), or
-    # "anthropic" (Claude; requires ANTHROPIC_API_KEY).
-    AI_PROVIDER: str = "heuristic"
+    # "gemini" (default; Google Gemini, free tier — set GEMINI_API_KEY to enable;
+    # without a key it transparently degrades to the offline heuristic so the app
+    # still runs), "anthropic" (Claude; requires ANTHROPIC_API_KEY), or
+    # "heuristic" (dependency-free, fully offline, no API key, deterministic).
+    AI_PROVIDER: str = "gemini"
     ANTHROPIC_API_KEY: str | None = None
     AI_MODEL: str = "claude-opus-4-8"
     GEMINI_API_KEY: str | None = None

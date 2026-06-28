@@ -24,15 +24,20 @@ import {
   PATH_HIGHLIGHT,
 } from "@/lib/colors";
 import { computeLayout, type LayoutKind, type Positions } from "@/lib/layout";
+import { useSelection } from "@/lib/selection";
 import type { Entity, GraphPath, GraphResponse, Relationship } from "@/lib/types";
 import { EntityNode, type EntityNodeData } from "./EntityNode";
 import { DetailPanel } from "./DetailPanel";
 import { AnalyticsPanel, type CentralityMap, type CommunityMap } from "./AnalyticsPanel";
 import { IngestPanel } from "./IngestPanel";
+import { EntityTable } from "./EntityTable";
 import { Legend, Toolbar } from "./Toolbar";
 import { SearchBar } from "./SearchBar";
 
 const nodeTypes = { entity: EntityNode };
+
+// Below this zoom we drop edge labels (semantic zoom / LOD, Task 8).
+const LOD_FAR_ZOOM = 0.55;
 
 function prettyRel(type: string): string {
   return type.replace(/_/g, " ").toLowerCase();
@@ -42,7 +47,12 @@ function Explorer({ onLogout }: { onLogout: () => void }) {
   const [entities, setEntities] = useState<Record<string, Entity>>({});
   const [rels, setRels] = useState<Record<string, Relationship>>({});
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
-  const [selected, setSelected] = useState<string | null>(null);
+  // Selection/brushing is shared across linked views (graph ⇄ table ⇄ map ⇄
+  // timeline) via the root SelectionStore (Task 9).
+  const { selected, select: setSelected, brushed } = useSelection();
+  const [showTable, setShowTable] = useState(false);
+  // Live zoom level, for semantic zoom / level-of-detail (Task 8).
+  const [zoom, setZoom] = useState(1);
   const [layout, setLayout] = useState<LayoutKind>("force");
   const [positions, setPositions] = useState<Positions>({});
   // Styling rules engine (#44): color nodes by an attribute.
@@ -88,7 +98,7 @@ function Explorer({ onLogout }: { onLogout: () => void }) {
       mergeGraph({ nodes: [entity] });
       setSelected(id);
     },
-    [mergeGraph],
+    [mergeGraph, setSelected],
   );
 
   const expand = useCallback(
@@ -143,7 +153,7 @@ function Explorer({ onLogout }: { onLogout: () => void }) {
     setCommunityMap(null);
     setPathNodeIds(new Set());
     setPathEdgeIds(new Set());
-  }, []);
+  }, [setSelected]);
 
   // Load any path nodes/edges not already on the canvas, then highlight them.
   const applyPath = useCallback(async (path: GraphPath | null) => {
@@ -261,6 +271,8 @@ function Explorer({ onLogout }: { onLogout: () => void }) {
       type: "entity",
       position: positions[e.id] ?? { x: 0, y: 0 },
       selected: e.id === selected,
+      // Brushed nodes get a shared highlight outline visible across linked views.
+      className: brushed.has(e.id) ? "atlas-brushed" : undefined,
       data: {
         label: e.name,
         type: e.type,
@@ -276,7 +288,7 @@ function Explorer({ onLogout }: { onLogout: () => void }) {
       },
     }));
     setRfNodes(nodes);
-  }, [entities, positions, expanded, selected, centralityMap, communityMap, pathNodeIds, replayVisible, colorBy, setRfNodes]);
+  }, [entities, positions, expanded, selected, brushed, centralityMap, communityMap, pathNodeIds, replayVisible, colorBy, setRfNodes]);
 
   useEffect(() => {
     const visibleRels = replayVisible
@@ -315,7 +327,7 @@ function Explorer({ onLogout }: { onLogout: () => void }) {
     }
   }, [nodeCount, layout, fitView]);
 
-  const onNodeClick = useCallback<NodeMouseHandler>((_, node) => setSelected(node.id), []);
+  const onNodeClick = useCallback<NodeMouseHandler>((_, node) => setSelected(node.id), [setSelected]);
   const onNodeDoubleClick = useCallback<NodeMouseHandler>(
     (_, node) => {
       if (expanded.has(node.id)) collapse(node.id);
@@ -333,7 +345,7 @@ function Explorer({ onLogout }: { onLogout: () => void }) {
   );
 
   return (
-    <div className="relative h-screen w-screen">
+    <div className={`relative h-screen w-screen ${zoom < LOD_FAR_ZOOM ? "lod-far" : ""}`}>
       <header className="absolute left-0 right-0 top-0 z-10 flex items-center justify-between gap-4 px-4 py-3">
         <div className="flex items-center gap-4">
           <span className="text-sm font-semibold text-slate-200">Atlas</span>
@@ -360,6 +372,15 @@ function Explorer({ onLogout }: { onLogout: () => void }) {
               <option value="classification">by classification</option>
             </select>
           </label>
+          <button
+            onClick={() => setShowTable((v) => !v)}
+            title="Linked table view (brushing syncs with the graph)"
+            className={`rounded px-2 py-1 text-xs ${
+              showTable ? "bg-sky-700 text-white" : "bg-panel text-slate-300"
+            }`}
+          >
+            ▤ Table
+          </button>
         </div>
         <Toolbar
           layout={layout}
@@ -386,9 +407,13 @@ function Explorer({ onLogout }: { onLogout: () => void }) {
         onEdgesChange={onEdgesChange}
         onNodeClick={onNodeClick}
         onNodeDoubleClick={onNodeDoubleClick}
+        onMove={(_, vp) => setZoom(vp.zoom)}
         nodeTypes={nodeTypes}
         fitView
         minZoom={0.1}
+        // Virtualize off-screen nodes/edges — the main perf lever for large
+        // graphs in React Flow (Task 8).
+        onlyRenderVisibleElements
         proOptions={{ hideAttribution: true }}
       >
         <Background color="#1e293b" gap={24} />
@@ -413,6 +438,10 @@ function Explorer({ onLogout }: { onLogout: () => void }) {
           }
           onClose={() => setShowIngest(false)}
         />
+      )}
+
+      {showTable && (
+        <EntityTable entities={Object.values(entities)} onClose={() => setShowTable(false)} />
       )}
 
       <div className="absolute bottom-4 left-4 z-10">

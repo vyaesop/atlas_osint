@@ -19,3 +19,20 @@ body {
 .react-flow__attribution {
   display: none;
 }
+
+/* Semantic zoom / level-of-detail (Task 8). When zoomed far out on a large
+   graph, hide edge labels (the most expensive, least useful detail at that
+   scale) via CSS so we don't re-render every node on zoom. The explorer toggles
+   `lod-far` on the wrapper from the live zoom level. */
+.lod-far .react-flow__edge-textwrapper {
+  display: none;
+}
+.lod-far .react-flow__edge-text {
+  display: none;
+}
+/* Brushed/active nodes stay legible even in far LOD. */
+.atlas-brushed {
+  outline: 2px solid #38bdf8;
+  outline-offset: 2px;
+  border-radius: 0.5rem;
+}

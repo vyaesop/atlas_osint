@@ -40,6 +40,8 @@ class RagResponse(BaseModel):
     answer: str
     provider: str
     citations: list[CitationRead]
+    # False when the system refused to answer for lack of grounded evidence (#29).
+    grounded: bool = False
 
 
 # --- #27 agentic investigation ---

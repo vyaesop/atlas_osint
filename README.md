@@ -4,6 +4,33 @@ A graph-based intelligence and knowledge platform for mapping evidence-backed
 relationships between people, organizations, companies, events, locations, and
 documents.
 
+## Who this is for
+
+**Atlas is built for the solo OSINT researcher** — one analyst, self-hosting,
+zero budget, working from open sources. Every design decision serves that user:
+
+- **Runs fully local & offline by default** — no API keys, no cloud, no Redis or
+  Neo4j required (SQLite + in-memory search + the deterministic heuristic
+  extractor). Your collection never leaves your machine unless you opt in.
+- **Free tooling only** — maps via OpenStreetMap/Leaflet; optional AI via Google
+  Gemini's free tier (`AI_PROVIDER=gemini`, the default), which **degrades
+  gracefully to the offline heuristic** when no key is set.
+- **Trust over volume** — evidence-driven, source-independent confidence
+  (sock-puppet-resistant), ICD-203 estimative language, Admiralty source
+  grading, and one-click provenance from any number back to its source.
+- **OpSec-aware** — ingestion is paste/upload based; the backend never fetches
+  target URLs, so opening a case doesn't beacon your interest. See
+  [SECURITY.md](./SECURITY.md) for the egress audit and the Gemini ⇄ OpSec
+  trade-off.
+
+The enterprise/agency features (ABAC compartments, classification markings,
+multi-analyst casework) are present and enforced, but they are *optional depth*
+— not the primary use case. For sensitive work, run with
+`AI_PROVIDER=heuristic`, `SEARCH_BACKEND=inmemory`, `NEO4J_ENABLED=false`.
+
+> **Start a guided investigation** at `/investigate`: ingest → resolve
+> duplicates → review confidence/provenance → generate a sourced report.
+
 > **Status:** All six phases implemented. Phases 1–5 (auth, CRUD, PostgreSQL,
 > Neo4j, evidence-driven confidence, search, graph explorer, analytics, document
 > ingestion + AI extraction, dashboards + timeline) plus **Phase 6 scaling &

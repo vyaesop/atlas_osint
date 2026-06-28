@@ -13,7 +13,7 @@ from app.models.enums import AuditAction, EntityType
 from app.models.user import User
 from app.schemas.entity import EntityCreate, EntityRead, EntityUpdate
 from app.jobs import dispatch
-from app.schemas.evidence import ConfidenceSummary
+from app.schemas.evidence import ConfidenceProvenance, ConfidenceSummary
 from app.services import confidence
 from app.services.audit import record_audit
 
@@ -82,6 +82,26 @@ async def entity_confidence(
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Entity not found.")
     result = await confidence.summarize_entity(db, entity_id)
     return ConfidenceSummary(**result.as_dict())
+
+
+@router.get("/{entity_id}/confidence/provenance", response_model=ConfidenceProvenance)
+async def entity_confidence_provenance(
+    entity_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """One-click provenance (Task 13): the confidence number *and* every evidence
+    item behind it — which sources counted, which were collapsed as duplicates,
+    and which are unverified — so an analyst can trace any score to source."""
+    entity = await entity_crud.get(db, entity_id)
+    if entity is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Entity not found.")
+    # Same ABAC gate as reading the entity itself (404-hides).
+    if not user_can_access(current_user, classification=entity.classification,
+                           compartments=entity.compartments):
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Entity not found.")
+    explanation = await confidence.explain_entity(db, entity_id)
+    return ConfidenceProvenance(**explanation.as_dict())
 
 
 @router.patch("/{entity_id}", response_model=EntityRead)

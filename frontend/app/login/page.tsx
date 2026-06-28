@@ -34,18 +34,24 @@ export default function LoginPage() {
         <h1 className="mb-1 text-xl font-semibold">Project Atlas</h1>
         <p className="mb-6 text-sm text-slate-400">Sign in to explore the graph.</p>
 
-        <label className="mb-1 block text-xs text-slate-400">Email</label>
+        <label htmlFor="email" className="mb-1 block text-xs text-slate-400">Email</label>
         <input
+          id="email"
+          name="email"
           type="email"
+          autoComplete="username"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           className="mb-4 w-full rounded-md bg-ink px-3 py-2 text-sm ring-1 ring-edge outline-none focus:ring-blue-500"
           required
         />
 
-        <label className="mb-1 block text-xs text-slate-400">Password</label>
+        <label htmlFor="password" className="mb-1 block text-xs text-slate-400">Password</label>
         <input
+          id="password"
+          name="password"
           type="password"
+          autoComplete="current-password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           className="mb-4 w-full rounded-md bg-ink px-3 py-2 text-sm ring-1 ring-edge outline-none focus:ring-blue-500"

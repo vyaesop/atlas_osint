@@ -361,3 +361,47 @@ export interface Lineage {
   nodes: LineageNode[];
   edges: LineageEdge[];
 }
+
+// --- Provenance, resolution, report (Task 7/13) ---
+export interface EvidenceContribution {
+  evidence_id: string;
+  title: string;
+  source: string | null;
+  url: string | null;
+  stance: string;
+  reliability: number;
+  admiralty_code: string | null;
+  verified: boolean;
+  counted: boolean;
+  reason: string;
+}
+
+export interface ConfidenceProvenance extends ConfidenceSummary {
+  contributions: EvidenceContribution[];
+}
+
+export interface DuplicateCandidate {
+  a_id: string;
+  a_name: string;
+  b_id: string;
+  b_name: string;
+  type: string;
+  score: number;
+  reason: string;
+  shared_neighbors: number;
+}
+
+export interface DuplicatesResponse {
+  threshold: number;
+  candidates: DuplicateCandidate[];
+}
+
+export interface EntityReport {
+  subject: Entity;
+  provider: string;
+  narrative: string;
+  key_findings: string[];
+  confidence: ConfidenceSummary;
+  timeline_event_count: number;
+  dashboard: DashboardResponse;
+}

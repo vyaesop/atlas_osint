@@ -38,11 +38,25 @@ class Citation:
     score: float
 
 
+# Below this top retrieval score, the corpus does not really address the
+# question; answering anyway is how a RAG system hallucinates "grounded" claims.
+# We refuse instead. Tuned to admit genuine matches (e.g. 2/3 query-term overlap)
+# while rejecting incidental single-term hits.
+MIN_GROUNDING_SCORE = 0.15
+
+_REFUSAL = (
+    "The corpus does not contain enough relevant evidence to answer this "
+    "confidently. Refusing rather than guessing. Add sourced documents and retry."
+)
+
+
 @dataclass(slots=True)
 class RagResult:
     answer: str
     provider: str
     citations: list[Citation] = field(default_factory=list)
+    # True only when the answer is grounded in retrieved sources above the floor.
+    grounded: bool = False
 
 
 def _snippet(text: str, terms: set[str], width: int = 160) -> str:
@@ -81,14 +95,28 @@ async def answer(db: AsyncSession, question: str, *, k: int = 5) -> RagResult:
     if not citations:
         return RagResult(
             answer="No documents in the corpus match this question.",
-            provider=ai_service.provider_name,
+            provider=ai_service.provider_name, grounded=False,
         )
+
+    # Refuse-beyond-evidence: if even the best match barely overlaps the question,
+    # the corpus does not address it. Return the (weak) citations for transparency
+    # but do NOT synthesize an answer — that is exactly where RAG hallucinates.
+    if citations[0].score < MIN_GROUNDING_SCORE:
+        return RagResult(
+            answer=_REFUSAL, provider=ai_service.provider_name,
+            citations=citations, grounded=False,
+        )
+
     context = "\n\n".join(
         f"[{i + 1}] {c.title}: {c.snippet}" for i, c in enumerate(citations)
     )
     context += (
-        "\n\nAnswer the question using ONLY the sources above. Cite sources as "
-        "[n]. If the sources do not answer it, say so."
+        "\n\nAnswer the question using ONLY the numbered sources above, and cite "
+        "each claim as [n]. Do not use any outside knowledge. If the sources do "
+        "not contain the answer, reply exactly: 'The sources do not answer this.'"
     )
     text = await ai_service.summarize(f"Question: {question}", context)
-    return RagResult(answer=text, provider=ai_service.provider_name, citations=citations)
+    return RagResult(
+        answer=text, provider=ai_service.provider_name,
+        citations=citations, grounded=True,
+    )

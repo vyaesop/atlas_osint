@@ -44,6 +44,21 @@ async def remove_relationship(ctx, rel_id: str) -> None:
     await graph_sync.delete_relationship(uuid.UUID(rel_id))
 
 
+async def reconcile_graph(ctx) -> None:
+    """Periodic Postgres ⇄ Neo4j drift repair (scheduled via cron below).
+
+    Self-healing safety net: even if individual projection jobs are lost, the
+    graph converges back to Postgres within the cron interval so analysts never
+    reason over a silently-stale graph.
+    """
+    from app.services import reconcile
+
+    async with AsyncSessionLocal() as db:
+        result = await reconcile.reconcile(db)
+    if result.report_before.drift_count:
+        logger.info("Scheduled reconcile repaired drift: %s", result.as_dict())
+
+
 async def _startup(ctx) -> None:
     try:
         await neo4j_client.connect()
@@ -65,8 +80,17 @@ def _redis_settings():
     return RedisSettings.from_dsn(settings.REDIS_URL)
 
 
+def _cron_jobs():
+    from arq import cron
+
+    # Reconcile every 15 minutes (top of, and quarter-past/half/quarter-to each
+    # hour). Cheap when already in sync; converges the graph when not.
+    return [cron(reconcile_graph, minute={0, 15, 30, 45})]
+
+
 class WorkerSettings:
     functions = [project_entity, remove_entity, project_relationship, remove_relationship]
+    cron_jobs = _cron_jobs()
     on_startup = _startup
     on_shutdown = _shutdown
     redis_settings = _redis_settings()

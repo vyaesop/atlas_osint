@@ -20,9 +20,29 @@ from app.schemas.governance import (
     PurgeResult,
     RetentionPreview,
 )
-from app.services import audit, governance
+from app.services import audit, governance, reconcile
 
 router = APIRouter(prefix="/governance", tags=["governance"])
+
+
+@router.get("/consistency")
+async def consistency_report(
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(require_admin),
+):
+    """Full Postgres ⇄ Neo4j drift report, including divergent ids (Task 4)."""
+    report = await reconcile.check_consistency(db)
+    return report.as_dict()
+
+
+@router.post("/reconcile")
+async def reconcile_graph(
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(require_admin),
+):
+    """Repair Neo4j to match Postgres (re-project missing/stale, drop orphans) (Task 3)."""
+    result = await reconcile.reconcile(db)
+    return result.as_dict()
 
 
 @router.get("/audit/verify", response_model=ChainStatusRead)

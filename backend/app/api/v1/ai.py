@@ -97,7 +97,7 @@ async def rag_answer(
     """Answer a question from the document corpus, grounded with citations (#25)."""
     result = await rag.answer(db, payload.question, k=payload.k)
     return RagResponse(
-        answer=result.answer, provider=result.provider,
+        answer=result.answer, provider=result.provider, grounded=result.grounded,
         citations=[CitationRead(**asdict(c)) for c in result.citations],
     )
 

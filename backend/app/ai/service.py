@@ -1,21 +1,41 @@
 """Selects and exposes the configured AI provider."""
 from __future__ import annotations
 
+import logging
+
 from app.ai.heuristic import HeuristicExtractor
 from app.ai.models import ExtractionResult
 from app.ai.provider import ExtractionProvider
 from app.core.config import settings
 
+logger = logging.getLogger(__name__)
+
 
 def _build_provider() -> ExtractionProvider:
-    if settings.AI_PROVIDER == "anthropic":
-        from app.ai.anthropic_provider import AnthropicExtractor  # lazy import
+    """Construct the configured provider, degrading to the offline heuristic.
 
-        return AnthropicExtractor()
-    if settings.AI_PROVIDER == "gemini":
-        from app.ai.gemini_provider import GeminiExtractor  # lazy import
+    Gemini is the intended default, but a missing key or SDK must never stop the
+    app from booting — a solo researcher should get a working (if less capable)
+    extractor with no setup. We therefore fall back to the heuristic extractor
+    and log loudly rather than raising. ``build_assistant`` does the same for the
+    NL→query path; keep the two in sync.
+    """
+    provider = settings.AI_PROVIDER
+    try:
+        if provider == "anthropic":
+            from app.ai.anthropic_provider import AnthropicExtractor  # lazy import
 
-        return GeminiExtractor()
+            return AnthropicExtractor()
+        if provider == "gemini":
+            from app.ai.gemini_provider import GeminiExtractor  # lazy import
+
+            return GeminiExtractor()
+    except Exception as exc:  # missing key, SDK not installed, etc.
+        logger.warning(
+            "AI_PROVIDER=%s unavailable (%s); falling back to the offline "
+            "heuristic extractor. Set the provider's API key to enable it.",
+            provider, exc,
+        )
     return HeuristicExtractor()
 
 

@@ -31,6 +31,22 @@ async def lifespan(app: FastAPI):
     try:
         await search_service.ensure_ready()
         logger.info("Search backend ready (%s).", settings.SEARCH_BACKEND)
+        # The in-memory backend is per-process and ephemeral. Rebuild it from the
+        # DB (source of truth) on startup so search works immediately after a
+        # seed/import — no manual POST /search/reindex needed. OpenSearch persists
+        # its own index, so we skip the (potentially large) rebuild there.
+        if settings.SEARCH_BACKEND == "inmemory":
+            from sqlalchemy import select
+
+            from app.db.session import AsyncSessionLocal
+            from app.models.entity import Entity
+
+            indexed = 0
+            async with AsyncSessionLocal() as db:
+                async for entity in await db.stream_scalars(select(Entity)):
+                    await search_service.index_entity(entity)
+                    indexed += 1
+            logger.info("Indexed %d entities into the in-memory search backend.", indexed)
     except Exception:  # pragma: no cover - allow API to boot if search is down
         logger.exception("Search backend unavailable at startup.")
     yield
@@ -63,6 +79,40 @@ app.include_router(api_router, prefix=settings.API_V1_PREFIX)
 @app.get("/health", tags=["health"])
 async def health() -> dict[str, str]:
     return {"status": "ok", "service": settings.PROJECT_NAME}
+
+
+@app.get("/health/consistency", tags=["health"])
+async def consistency_health() -> dict[str, object]:
+    """Summary of Postgres ⇄ Neo4j drift for uptime/monitoring checks.
+
+    Intentionally returns only counts (no entity ids) since it is unauthenticated;
+    the detailed report and repair action live under ``/api/v1/governance`` behind
+    admin auth. ``status`` is ``ok`` when the stores agree (or the graph is
+    disabled), ``drift`` when they diverge, ``unknown`` if the graph is
+    unreachable.
+    """
+    from app.db.session import AsyncSessionLocal
+    from app.services import reconcile
+
+    async with AsyncSessionLocal() as db:
+        report = await reconcile.check_consistency(db)
+
+    if not report.neo4j_enabled:
+        status_ = "ok"
+    elif not report.checked:
+        status_ = "unknown"
+    elif report.in_sync:
+        status_ = "ok"
+    else:
+        status_ = "drift"
+    return {
+        "status": status_,
+        "neo4j_enabled": report.neo4j_enabled,
+        "checked": report.checked,
+        "in_sync": report.in_sync,
+        "drift_count": report.drift_count,
+        "counts": report.as_dict()["counts"],
+    }
 
 
 @app.get("/", tags=["health"])

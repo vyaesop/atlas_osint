@@ -11,6 +11,7 @@ from dataclasses import dataclass, field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.abac import user_can_access
 from app.models.entity import Entity
 from app.models.enums import EntityType
 
@@ -48,11 +49,23 @@ def _buckets(counter: Counter, *, sort_by_value: bool = False) -> list[FacetBuck
     return [FacetBucket(value=str(k), count=v) for k, v in items]
 
 
-async def compute_facets(db: AsyncSession, *, type_: EntityType | None = None) -> Facets:
+async def compute_facets(
+    db: AsyncSession, *, type_: EntityType | None = None, user=None
+) -> Facets:
+    """Faceted entity counts. When ``user`` is given, only entities the user is
+    cleared for are counted — otherwise the histogram itself would leak the
+    *existence and volume* of compartmented/classified data to a lower-clearance
+    analyst (e.g. "3 TOP_SECRET entities"). ABAC must hold at the aggregate, not
+    only at the row, level."""
     stmt = select(Entity)
     if type_ is not None:
         stmt = stmt.where(Entity.type == type_)
     entities = list((await db.execute(stmt)).scalars().all())
+    if user is not None:
+        entities = [
+            e for e in entities
+            if user_can_access(user, classification=e.classification, compartments=e.compartments)
+        ]
 
     by_type, by_class, by_conf, by_prov, by_month = (Counter() for _ in range(5))
     for e in entities:
