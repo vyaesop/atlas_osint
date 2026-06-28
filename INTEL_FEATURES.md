@@ -78,16 +78,24 @@ SUPERVISES layering + cycle detection) and cell-topology classification
 (hub_and_spoke/clique/chain/distributed) at `/analytics/hierarchy` & `/cells`.
 Also hardened a latent `graph_sync` logging bug. 17 new tests; 124 passing.
 
-## Cluster 5 — OSINT & Ingestion
+## Cluster 5 — OSINT & Ingestion  (5/7 done; #20/#21 → Cluster 6 multimodal)
 | # | Feature | Status |
 |---|---------|--------|
-| 17 | Transform/connector framework (Maltego-style enrichment) | ⬜ |
-| 18 | Sanctions/PEP/watchlist screening (OFAC/UN/EU) | ⬜ |
-| 19 | RSS/news/feed continuous monitoring via worker | ⬜ |
-| 20 | Image intelligence (EXIF, OCR, reverse search) | ⬜ |
-| 21 | Audio/video transcription → extraction | ⬜ |
-| 22 | Email/chat ingestion (PST/MBOX) for comms networks | ⬜ |
-| 23 | Cryptocurrency / on-chain flow tracing | ⬜ |
+| 17 | Transform/connector framework (Maltego-style enrichment) | ✅ |
+| 18 | Sanctions/PEP/watchlist screening (OFAC/UN/EU) | ✅ |
+| 19 | RSS/news/feed monitoring (parse + ingest) | ✅ |
+| 20 | Image intelligence (EXIF, OCR, reverse search) | ⬜ (→ #6 Gemini vision) |
+| 21 | Audio/video transcription → extraction | ⬜ (→ #6 Gemini audio) |
+| 22 | Email/chat ingestion (EML/MBOX) for comms networks | ✅ |
+| 23 | Cryptocurrency / on-chain flow tracing | ✅ |
+
+**Delivered (offline/stdlib):** #17 transform framework (`transforms/`,
+selector extraction, `/transforms` run+persist as ASSET nodes); #18 sanctions
+screening (`WatchlistEntry` + migration `0007`, `/sanctions/` watchlist/screen/
+scan); #19 RSS/Atom parse + per-item ingest (`/ingestion/feed`); #22 EML/MBOX →
+comms network (`/ingestion/email`); #23 crypto wallet-flow import
+(`/ingestion/crypto`). 22 new tests; 140 passing. **Scheduled fetching** for #19
+is deployment wiring (arq/cron calls the ingest path).
 
 ## Cluster 6 — AI / Agentic (Gemini)
 | # | Feature | Status |
@@ -145,3 +153,6 @@ Also hardened a latent `graph_sync` logging bug. 17 new tests; 124 passing.
   scrubber) + #11 N-entity swimlanes (`/timeline`). Build clean. Starting Cluster 4.
 - **2026-06-28** — ✅ Cluster 4 complete: #13 entity resolution (merge/unmerge,
   migration 0006) + #15 hierarchy & cell-topology inference. 124 tests passing.
+- **2026-06-28** — ✅ Cluster 5 offline scope: #17 transforms, #18 sanctions
+  (migration 0007), #19 feeds, #22 email comms, #23 crypto. 140 passing.
+  #20/#21 deferred to Cluster 6 (Gemini multimodal).

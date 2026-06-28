@@ -10,9 +10,10 @@ from app.models.entity_merge import EntityMerge
 from app.models.evidence import Evidence
 from app.models.relationship import Relationship
 from app.models.user import User
+from app.models.watchlist import WatchlistEntry
 
 __all__ = [
     "User", "Entity", "Relationship", "Evidence", "AuditLog", "Document",
     "AchAnalysis", "AchHypothesis", "AchItem", "AchRating", "Annotation",
-    "EntityMerge",
+    "EntityMerge", "WatchlistEntry",
 ]
