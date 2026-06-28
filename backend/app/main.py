@@ -19,12 +19,15 @@ logger = logging.getLogger("atlas")
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Connect to Neo4j and ensure graph constraints on startup.
-    try:
-        await neo4j_client.connect()
-        await neo4j_client.ensure_constraints()
-        logger.info("Connected to Neo4j and ensured constraints.")
-    except Exception:  # pragma: no cover - allow API to boot if graph is down
-        logger.exception("Neo4j unavailable at startup; graph sync will retry per-write.")
+    if settings.NEO4J_ENABLED:
+        try:
+            await neo4j_client.connect()
+            await neo4j_client.ensure_constraints()
+            logger.info("Connected to Neo4j and ensured constraints.")
+        except Exception:  # pragma: no cover - allow API to boot if graph is down
+            logger.exception("Neo4j unavailable at startup; graph sync will retry per-write.")
+    else:
+        logger.info("Neo4j disabled (NEO4J_ENABLED=false); graph projection is a no-op.")
     try:
         await search_service.ensure_ready()
         logger.info("Search backend ready (%s).", settings.SEARCH_BACKEND)

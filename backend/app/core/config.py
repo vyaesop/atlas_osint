@@ -67,6 +67,9 @@ class Settings(BaseSettings):
         )
 
     # ---- Neo4j ----
+    # Set NEO4J_ENABLED=false for local dev without a graph DB: startup skips the
+    # connection and graph projection no-ops (Postgres/SQLite stays source of truth).
+    NEO4J_ENABLED: bool = True
     NEO4J_URI: str = "bolt://localhost:7687"
     NEO4J_USER: str = "neo4j"
     NEO4J_PASSWORD: str = "neo4j"

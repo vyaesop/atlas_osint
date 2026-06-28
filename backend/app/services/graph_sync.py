@@ -13,6 +13,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+from app.core.config import settings
 from app.db.neo4j import neo4j_client
 from app.models.entity import Entity
 from app.models.relationship import Relationship
@@ -88,6 +89,8 @@ async def _safe_write(query: str, **params: Any) -> None:
     The Postgres record is already committed and authoritative; a failed
     projection is logged for the Phase 6 reconciliation job to repair.
     """
+    if not settings.NEO4J_ENABLED:
+        return  # Graph projection disabled (local dev); Postgres stays source of truth.
     try:
         await neo4j_client.run_write(query, **params)
     except Exception:  # pragma: no cover - defensive

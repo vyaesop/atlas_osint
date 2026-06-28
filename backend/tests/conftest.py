@@ -10,6 +10,14 @@ mirroring production, where ``get_db`` yields a fresh session per request.
 """
 from __future__ import annotations
 
+import os
+
+# Force a deterministic, offline AI provider for tests regardless of any local
+# .env (which may select Gemini for running the app). OS env overrides .env in
+# pydantic-settings, and this runs before app modules construct their settings.
+os.environ["AI_PROVIDER"] = "heuristic"
+os.environ["NEO4J_ENABLED"] = "false"
+
 import asyncio
 from collections.abc import AsyncGenerator
 

@@ -33,3 +33,8 @@ Thumbs.db
 data/
 pgdata/
 neo4jdata/
+
+# Local SQLite dev databases
+*.db
+*.sqlite
+*.sqlite3
