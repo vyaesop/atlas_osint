@@ -84,8 +84,8 @@ Also hardened a latent `graph_sync` logging bug. 17 new tests; 124 passing.
 | 17 | Transform/connector framework (Maltego-style enrichment) | ✅ |
 | 18 | Sanctions/PEP/watchlist screening (OFAC/UN/EU) | ✅ |
 | 19 | RSS/news/feed monitoring (parse + ingest) | ✅ |
-| 20 | Image intelligence (EXIF, OCR, reverse search) | ⬜ (→ #6 Gemini vision) |
-| 21 | Audio/video transcription → extraction | ⬜ (→ #6 Gemini audio) |
+| 20 | Image intelligence (Gemini vision: caption/OCR/entities) | ✅ (Cluster 6) |
+| 21 | Audio/video transcription → extraction (Gemini) | ✅ (Cluster 6) |
 | 22 | Email/chat ingestion (EML/MBOX) for comms networks | ✅ |
 | 23 | Cryptocurrency / on-chain flow tracing | ✅ |
 
@@ -97,25 +97,27 @@ comms network (`/ingestion/email`); #23 crypto wallet-flow import
 (`/ingestion/crypto`). 22 new tests; 140 passing. **Scheduled fetching** for #19
 is deployment wiring (arq/cron calls the ingest path).
 
-## Cluster 6 — AI / Agentic (Gemini)  (4/7 + multimodal pending)
+## Cluster 6 — AI / Agentic (Gemini) ✅ DONE
 | # | Feature | Status |
 |---|---------|--------|
 | 24 | Natural-language → graph query | ✅ |
-| 25 | RAG over corpus with source citations | ⬜ (next) |
+| 25 | RAG over corpus with source citations | ✅ |
 | 26 | Auto-generated intelligence reports / target packages | ✅ |
-| 27 | Agentic investigation assistant | ⬜ (next) |
+| 27 | Agentic investigation assistant | ✅ |
 | 28 | Proactive contradiction/anomaly alert feed | ✅ |
 | 29 | Confidence-aware AI responses (cite + refuse beyond evidence) | ✅ |
-| 30 | Deepfake / synthetic-media detection flag | ⬜ (next) |
-| 20 | Image intelligence (Gemini vision: EXIF/OCR/caption) | ⬜ (next) |
-| 21 | Audio/video transcription → extraction (Gemini) | ⬜ (next) |
+| 30 | Deepfake / synthetic-media detection flag | ✅ |
+| 20 | Image intelligence (Gemini vision: caption/OCR/entities) | ✅ |
+| 21 | Audio/video transcription → extraction (Gemini) | ✅ |
 
-**Delivered:** #24 NL→graph query (`ai/assistant.py` heuristic default +
-`gemini_assistant.py`; deterministic executor; `/ai/query`). #26 grounded,
-confidence-aware intelligence report (`services/report.py`; `/ai/report/
-entity/{id}`) — which also fulfils #29. #28 proactive alert feed fusing
-contradictions + anomalies + sanctions (`services/alerts.py`; `/alerts`).
-12 new tests; 146 passing. Remaining are live-Gemini / multimodal heavy.
+**Delivered:** #24 NL→graph query (heuristic + Gemini assistant; `/ai/query`).
+#25 RAG with citations (`services/rag.py`; `/ai/rag`). #26 confidence-aware
+report (`/ai/report/entity/{id}`, also #29). #27 agentic investigation
+(`services/investigate.py`; `/ai/investigate/{id}` — runs sanctions/dup/
+contradiction/selector/gap analysis + next actions). #28 alert feed (`/alerts`).
+#30 synthetic-media flag (`services/media_forensics.py`; `/ai/media/deepfake-
+check`). #20/#21 Gemini multimodal (`services/multimodal.py`; `/ai/image`,
+`/ai/audio`, 503 without Gemini). 19 new tests; 153 passing.
 
 ## Cluster 7 — Collaboration & Casework
 | # | Feature | Status |
@@ -166,5 +168,7 @@ contradictions + anomalies + sanctions (`services/alerts.py`; `/alerts`).
   (migration 0007), #19 feeds, #22 email comms, #23 crypto. 140 passing.
   #20/#21 deferred to Cluster 6 (Gemini multimodal).
 - **2026-06-28** — Cluster 6 partial: ✅ #24 NL→query, #26 report, #28 alerts,
-  #29 confidence-aware. 146 passing. Remaining: #25 RAG, #27 agentic, #30
-  deepfake, #20 image, #21 audio (live-Gemini / multimodal).
+  #29 confidence-aware. 146 passing.
+- **2026-06-28** — ✅ Cluster 6 complete: added #25 RAG, #27 agentic
+  investigation, #30 deepfake flag, #20 image + #21 audio (Gemini multimodal).
+  153 passing. **Clusters 1–6 all done (47/52 items).** Remaining: 7, 8, 9 + #5.
