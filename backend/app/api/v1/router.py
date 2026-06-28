@@ -3,6 +3,7 @@ from fastapi import APIRouter
 from app.api.v1 import (
     ach,
     ai,
+    alerts,
     analytics,
     annotations,
     auth,
@@ -40,3 +41,4 @@ api_router.include_router(geo.router)
 api_router.include_router(resolution.router)
 api_router.include_router(transforms.router)
 api_router.include_router(sanctions.router)
+api_router.include_router(alerts.router)

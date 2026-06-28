@@ -97,16 +97,25 @@ comms network (`/ingestion/email`); #23 crypto wallet-flow import
 (`/ingestion/crypto`). 22 new tests; 140 passing. **Scheduled fetching** for #19
 is deployment wiring (arq/cron calls the ingest path).
 
-## Cluster 6 — AI / Agentic (Gemini)
+## Cluster 6 — AI / Agentic (Gemini)  (4/7 + multimodal pending)
 | # | Feature | Status |
 |---|---------|--------|
-| 24 | Natural-language → graph query | ⬜ |
-| 25 | RAG over corpus with source citations | ⬜ |
-| 26 | Auto-generated intelligence reports / target packages | ⬜ |
-| 27 | Agentic investigation assistant | ⬜ |
-| 28 | Proactive contradiction/anomaly alert feed | 🟡 |
-| 29 | Confidence-aware AI responses (cite + refuse beyond evidence) | 🟡 |
-| 30 | Deepfake / synthetic-media detection flag | ⬜ |
+| 24 | Natural-language → graph query | ✅ |
+| 25 | RAG over corpus with source citations | ⬜ (next) |
+| 26 | Auto-generated intelligence reports / target packages | ✅ |
+| 27 | Agentic investigation assistant | ⬜ (next) |
+| 28 | Proactive contradiction/anomaly alert feed | ✅ |
+| 29 | Confidence-aware AI responses (cite + refuse beyond evidence) | ✅ |
+| 30 | Deepfake / synthetic-media detection flag | ⬜ (next) |
+| 20 | Image intelligence (Gemini vision: EXIF/OCR/caption) | ⬜ (next) |
+| 21 | Audio/video transcription → extraction (Gemini) | ⬜ (next) |
+
+**Delivered:** #24 NL→graph query (`ai/assistant.py` heuristic default +
+`gemini_assistant.py`; deterministic executor; `/ai/query`). #26 grounded,
+confidence-aware intelligence report (`services/report.py`; `/ai/report/
+entity/{id}`) — which also fulfils #29. #28 proactive alert feed fusing
+contradictions + anomalies + sanctions (`services/alerts.py`; `/alerts`).
+12 new tests; 146 passing. Remaining are live-Gemini / multimodal heavy.
 
 ## Cluster 7 — Collaboration & Casework
 | # | Feature | Status |
@@ -156,3 +165,6 @@ is deployment wiring (arq/cron calls the ingest path).
 - **2026-06-28** — ✅ Cluster 5 offline scope: #17 transforms, #18 sanctions
   (migration 0007), #19 feeds, #22 email comms, #23 crypto. 140 passing.
   #20/#21 deferred to Cluster 6 (Gemini multimodal).
+- **2026-06-28** — Cluster 6 partial: ✅ #24 NL→query, #26 report, #28 alerts,
+  #29 confidence-aware. 146 passing. Remaining: #25 RAG, #27 agentic, #30
+  deepfake, #20 image, #21 audio (live-Gemini / multimodal).
