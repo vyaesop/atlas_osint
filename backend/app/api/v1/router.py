@@ -16,6 +16,7 @@ from app.api.v1 import (
     graph,
     imports,
     ingestion,
+    insights,
     relationships,
     resolution,
     sanctions,
@@ -48,3 +49,4 @@ api_router.include_router(alerts.router)
 api_router.include_router(casework.router)
 api_router.include_router(workspace.router)
 api_router.include_router(governance.router)
+api_router.include_router(insights.router)
