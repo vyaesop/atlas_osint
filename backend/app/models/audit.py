@@ -24,3 +24,6 @@ class AuditLog(Base, UUIDPrimaryKeyMixin, TimestampMixin):
     # Snapshot of changed fields / before-after diff.
     changes: Mapped[dict] = mapped_column(JSONType, default=dict, nullable=False)
     reason: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # Tamper-evident hash chain (#39): entry_hash = H(content + prev_hash).
+    prev_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    entry_hash: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)

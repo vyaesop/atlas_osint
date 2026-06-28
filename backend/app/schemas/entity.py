@@ -15,7 +15,7 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from app.models.enums import EntityType
+from app.models.enums import Classification, EntityType
 
 
 # --- Per-type property models (extra fields rejected for data hygiene) ---
@@ -97,6 +97,8 @@ class EntityCreate(BaseModel):
     description: str | None = None
     properties: dict[str, Any] = Field(default_factory=dict)
     confidence_score: float = Field(default=0.0, ge=0.0, le=1.0)
+    classification: Classification = Classification.UNCLASSIFIED
+    compartments: list[str] = Field(default_factory=list)
 
     @model_validator(mode="after")
     def _check_props(self) -> "EntityCreate":
@@ -110,6 +112,9 @@ class EntityUpdate(BaseModel):
     description: str | None = None
     properties: dict[str, Any] | None = None
     confidence_score: float | None = Field(default=None, ge=0.0, le=1.0)
+    classification: Classification | None = None
+    compartments: list[str] | None = None
+    legal_hold: bool | None = None
 
 
 class EntityRead(BaseModel):
@@ -123,6 +128,9 @@ class EntityRead(BaseModel):
     properties: dict[str, Any]
     confidence_score: float
     is_ai_generated: bool
+    classification: Classification
+    compartments: list[str]
+    legal_hold: bool
     created_by: uuid.UUID | None
     created_at: datetime
     updated_at: datetime

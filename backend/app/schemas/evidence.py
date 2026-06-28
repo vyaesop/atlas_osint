@@ -6,6 +6,7 @@ from datetime import date, datetime
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from app.models.enums import (
+    Classification,
     EvidenceStance,
     InfoCredibility,
     SourceReliability,
@@ -23,6 +24,7 @@ class EvidenceCreate(BaseModel):
     reliability_score: float = Field(default=0.0, ge=0.0, le=1.0)
     source_reliability: SourceReliability | None = None
     info_credibility: InfoCredibility | None = None
+    classification: Classification = Classification.UNCLASSIFIED
     stance: EvidenceStance = EvidenceStance.SUPPORTS
     entity_id: uuid.UUID | None = None
     relationship_id: uuid.UUID | None = None
@@ -69,6 +71,7 @@ class EvidenceRead(BaseModel):
     reliability_score: float
     source_reliability: SourceReliability | None
     info_credibility: InfoCredibility | None
+    classification: Classification
     stance: EvidenceStance
     verification_status: VerificationStatus
     verified_by: uuid.UUID | None

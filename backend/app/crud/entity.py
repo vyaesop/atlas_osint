@@ -64,6 +64,8 @@ async def create(db: AsyncSession, data: EntityCreate, *, created_by: uuid.UUID)
         description=data.description,
         properties=data.properties,
         confidence_score=data.confidence_score,
+        classification=data.classification,
+        compartments=data.compartments,
         created_by=created_by,
     )
     db.add(entity)

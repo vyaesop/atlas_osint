@@ -31,6 +31,8 @@ async def create(db: AsyncSession, data: UserCreate, *, role: Role | None = None
         full_name=data.full_name,
         hashed_password=hash_password(data.password),
         role=role or data.role,
+        clearance=data.clearance,
+        compartments=data.compartments,
     )
     db.add(user)
     await db.flush()

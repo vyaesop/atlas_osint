@@ -21,6 +21,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from app.db.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
 from app.db.types import GUID
 from app.models.enums import (
+    Classification,
     EvidenceStance,
     InfoCredibility,
     SourceReliability,
@@ -56,6 +57,10 @@ class Evidence(Base, UUIDPrimaryKeyMixin, TimestampMixin):
     )
     info_credibility: Mapped[InfoCredibility | None] = mapped_column(
         SAEnum(InfoCredibility, name="info_credibility"), nullable=True
+    )
+    classification: Mapped[Classification] = mapped_column(
+        SAEnum(Classification, name="classification"),
+        default=Classification.UNCLASSIFIED, nullable=False,
     )
 
     stance: Mapped[EvidenceStance] = mapped_column(

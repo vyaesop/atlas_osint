@@ -136,15 +136,24 @@ classification markings (`/cases/{id}/review`). #32 tasks/RFIs (`/tasks`).
 with owner/shared visibility (`/views`). #35 notebooks + ordered blocks, graph
 blocks reference live entity ids (`/notebooks`). 6 new tests; 159 passing.
 
-## Cluster 8 — Security & Governance
+## Cluster 8 — Security & Governance ✅ DONE
 | # | Feature | Status |
 |---|---------|--------|
-| 37 | Classification & handling markings (per entity/evidence) | ⬜ |
-| 38 | ABAC + compartmentalization (beyond 3 roles) | 🟡 |
-| 39 | Tamper-evident hash-chained audit log | 🟡 |
-| 40 | Data retention / purge / legal-hold policies | ⬜ |
-| 41 | Redaction & sanitized export | ⬜ |
-| 42 | Anomalous-analyst (insider-misuse) detection | ⬜ |
+| 37 | Classification & handling markings (per entity/evidence) | ✅ |
+| 38 | ABAC + compartmentalization (beyond 3 roles) | ✅ |
+| 39 | Tamper-evident hash-chained audit log | ✅ |
+| 40 | Data retention / purge / legal-hold policies | ✅ |
+| 41 | Redaction & sanitized export | ✅ |
+| 42 | Anomalous-analyst (insider-misuse) detection | ✅ |
+
+**Delivered:** migration `0009`. #37 classification on entities/evidence +
+compartments. #38 ABAC (`core/abac.py`) — user clearance × compartments enforced
+on entity read/list (404-hides). #39 tamper-evident hash chain on the audit log
+(`services/audit.py`, linkage-based tip + verify; `/governance/audit/verify`).
+#40 retention preview/purge respecting legal holds (`/governance/retention/*`).
+#41 clearance-aware sanitized export (`/governance/cases/{id}/export`). #42
+insider-misuse detection over the audit log (`/governance/insider-threat`).
+6 new tests; 165 passing.
 
 ## Cluster 9 — Visualization & UX
 | # | Feature | Status |
@@ -181,5 +190,7 @@ blocks reference live entity ids (`/notebooks`). 6 new tests; 159 passing.
   153 passing. **Clusters 1–6 all done.**
 - **2026-06-28** — ✅ Cluster 7 complete: cases/items, review workflow, tasks/
   RFIs, comments, saved views/pinboards, notebooks. Migration 0008. 159 passing.
-  **Clusters 1–7 done.** Remaining: Cluster 8 (security/governance), Cluster 9
-  (viz/UX), and #5 (full lineage view).
+- **2026-06-28** — ✅ Cluster 8 complete: classification/ABAC, tamper-evident
+  audit chain, retention/legal-hold, sanitized export, insider detection.
+  Migration 0009. 165 passing. **Clusters 1–8 done.** Remaining: Cluster 9
+  (viz/UX) + #5 (lineage view).

@@ -7,7 +7,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
 from app.db.types import GUID, JSONType
-from app.models.enums import EntityType
+from app.models.enums import Classification, EntityType
 
 
 class Entity(Base, UUIDPrimaryKeyMixin, TimestampMixin):
@@ -32,6 +32,14 @@ class Entity(Base, UUIDPrimaryKeyMixin, TimestampMixin):
     confidence_score: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
     # AI-extracted entities are flagged until a researcher verifies them.
     is_ai_generated: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+
+    # Governance (#37/#38/#40): classification, need-to-know compartments, legal hold.
+    classification: Mapped[Classification] = mapped_column(
+        SAEnum(Classification, name="classification"),
+        default=Classification.UNCLASSIFIED, nullable=False, index=True,
+    )
+    compartments: Mapped[list] = mapped_column(JSONType, default=list, nullable=False)
+    legal_hold: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     created_by: Mapped[uuid.UUID | None] = mapped_column(GUID, nullable=True)
 

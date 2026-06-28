@@ -5,6 +5,7 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.abac import user_can_access
 from app.core.deps import get_current_user, require_researcher
 from app.crud import entity as entity_crud
 from app.db.session import get_db
@@ -26,9 +27,14 @@ async def list_entities(
     skip: int = 0,
     limit: int = Query(default=100, le=500),
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
-    return await entity_crud.list_entities(db, skip=skip, limit=limit, type_=type, q=q)
+    entities = await entity_crud.list_entities(db, skip=skip, limit=limit, type_=type, q=q)
+    # ABAC (#38): hide entities the caller is not cleared / compartmented for.
+    return [
+        e for e in entities
+        if user_can_access(current_user, classification=e.classification, compartments=e.compartments)
+    ]
 
 
 @router.post("", response_model=EntityRead, status_code=status.HTTP_201_CREATED)
@@ -53,10 +59,14 @@ async def create_entity(
 async def get_entity(
     entity_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
     entity = await entity_crud.get(db, entity_id)
     if entity is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Entity not found.")
+    # 404 (not 403) when not cleared, so existence isn't disclosed.
+    if not user_can_access(current_user, classification=entity.classification,
+                           compartments=entity.compartments):
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Entity not found.")
     return entity
 
