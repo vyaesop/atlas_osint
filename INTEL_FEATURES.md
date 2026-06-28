@@ -31,7 +31,7 @@ AI = **Google Gemini** (`AI_PROVIDER=gemini`, `gemini-2.0-flash`), no Claude/pai
 | 2 | ICD-203 estimative-probability vocabulary on confidence scores | ✅ |
 | 3 | Source reliability grading (Admiralty A–F × 1–6) | ✅ |
 | 4 | Key-assumptions check + devil's-advocacy flags | ✅ (annotations) |
-| 5 | Full analytic lineage/provenance graph | 🟡 (deferred — needs a dedicated provenance view) |
+| 5 | Full analytic lineage/provenance graph | ✅ (done in Cluster 9: `/insights/lineage/{id}`) |
 | 6 | Analyst dissent / dissenting-footnote capture per node | ✅ (annotations) |
 
 **Delivered:** ACH (`models/ach.py`, `services/ach.py` pure scorer, `crud/ach.py`,
@@ -155,15 +155,25 @@ on entity read/list (404-hides). #39 tamper-evident hash chain on the audit log
 insider-misuse detection over the audit log (`/governance/insider-threat`).
 6 new tests; 165 passing.
 
-## Cluster 9 — Visualization & UX
+## Cluster 9 — Visualization & UX  (4 done; #43/#45 pragmatic/partial)
 | # | Feature | Status |
 |---|---------|--------|
-| 43 | Synchronized linked views (graph ⇄ map ⇄ timeline ⇄ table) | ⬜ |
-| 44 | Graph styling rules engine | 🟡 |
-| 45 | WebGL large-graph rendering + semantic zoom/clustering | ⬜ |
-| 46 | Histogram/facet brush filters | ⬜ |
-| 47 | Network diff ("what changed since last week") | ⬜ |
-| 49 | Per-entity risk scoring | ⬜ |
+| 43 | Synchronized linked views (graph ⇄ map ⇄ timeline ⇄ table) | 🟡 cross-linked nav + facet panel; live 4-way brushing = future |
+| 44 | Graph styling rules engine | ✅ |
+| 45 | WebGL large-graph rendering + semantic zoom/clustering | 🟡 minimap zoom + community clustering coloring; WebGL renderer = future |
+| 46 | Histogram/facet brush filters | ✅ |
+| 47 | Network diff ("what changed since last week") | ✅ |
+| 49 | Per-entity risk scoring | ✅ |
+
+**Delivered:** backend `/insights` (risk #49, diff #47, lineage #5, facets #46;
+17 of those tests). Frontend: `/insights` dashboard (facet histograms, risk
+leaderboard, date-bounded network diff), styling rules engine in the explorer
+(color nodes by type/classification, #44), and a cross-linked nav (explorer ⇄
+insights ⇄ map ⇄ timeline ⇄ dashboard). `tsc` + `next build` clean.
+**#43/#45 note:** the app has cross-linked views, facet filtering, minimap
+semantic zoom, and community clustering coloring; a single-screen 4-way
+linked-brushing canvas and a WebGL renderer for 100k+ nodes are the remaining
+infra rebuilds (React Flow handles moderate graphs today).
 
 ---
 
@@ -192,5 +202,9 @@ insider-misuse detection over the audit log (`/governance/insider-threat`).
   RFIs, comments, saved views/pinboards, notebooks. Migration 0008. 159 passing.
 - **2026-06-28** — ✅ Cluster 8 complete: classification/ABAC, tamper-evident
   audit chain, retention/legal-hold, sanitized export, insider detection.
-  Migration 0009. 165 passing. **Clusters 1–8 done.** Remaining: Cluster 9
-  (viz/UX) + #5 (lineage view).
+  Migration 0009. 165 passing.
+- **2026-06-28** — Cluster 9: backend #49 risk, #47 diff, #5 lineage, #46 facets
+  (169 passing) + frontend `/insights` dashboard, #44 styling rules. #43/#45
+  delivered as pragmatic/partial (cross-linked nav + clustering; full linked-
+  brushing & WebGL renderer noted as future infra). **50/52 fully done; #43/#45
+  partial.** Build clean.

@@ -17,7 +17,12 @@ import ReactFlow, {
 import "reactflow/dist/style.css";
 
 import { api } from "@/lib/api";
-import { communityColor, entityColor, PATH_HIGHLIGHT } from "@/lib/colors";
+import {
+  classificationColor,
+  communityColor,
+  entityColor,
+  PATH_HIGHLIGHT,
+} from "@/lib/colors";
 import { computeLayout, type LayoutKind, type Positions } from "@/lib/layout";
 import type { Entity, GraphPath, GraphResponse, Relationship } from "@/lib/types";
 import { EntityNode, type EntityNodeData } from "./EntityNode";
@@ -40,6 +45,8 @@ function Explorer({ onLogout }: { onLogout: () => void }) {
   const [selected, setSelected] = useState<string | null>(null);
   const [layout, setLayout] = useState<LayoutKind>("force");
   const [positions, setPositions] = useState<Positions>({});
+  // Styling rules engine (#44): color nodes by an attribute.
+  const [colorBy, setColorBy] = useState<"type" | "classification">("type");
 
   // Panels.
   const [showAnalytics, setShowAnalytics] = useState(false);
@@ -262,12 +269,14 @@ function Explorer({ onLogout }: { onLogout: () => void }) {
         metricScore: centralityMap?.get(e.id),
         communityColor:
           communityMap?.has(e.id) ? communityColor(communityMap.get(e.id)!) : undefined,
+        colorOverride:
+          colorBy === "classification" ? classificationColor(e.classification) : undefined,
         onPath: pathNodeIds.has(e.id),
         aiGenerated: e.is_ai_generated,
       },
     }));
     setRfNodes(nodes);
-  }, [entities, positions, expanded, selected, centralityMap, communityMap, pathNodeIds, replayVisible, setRfNodes]);
+  }, [entities, positions, expanded, selected, centralityMap, communityMap, pathNodeIds, replayVisible, colorBy, setRfNodes]);
 
   useEffect(() => {
     const visibleRels = replayVisible
@@ -339,6 +348,18 @@ function Explorer({ onLogout }: { onLogout: () => void }) {
           >
             ⏱ Replay
           </button>
+          <label className="flex items-center gap-1 rounded bg-panel px-2 py-1 text-xs text-slate-300">
+            Color
+            <select
+              value={colorBy}
+              onChange={(e) => setColorBy(e.target.value as "type" | "classification")}
+              className="bg-transparent text-xs text-slate-200 outline-none"
+              title="Styling rules: color nodes by attribute (#44)"
+            >
+              <option value="type">by type</option>
+              <option value="classification">by classification</option>
+            </select>
+          </label>
         </div>
         <Toolbar
           layout={layout}

@@ -39,3 +39,23 @@ export function communityColor(index: number): string {
 
 // Amber used to highlight a discovered path.
 export const PATH_HIGHLIGHT = "#fbbf24";
+
+// Classification markings (#37) — used by the styling rules engine (#44).
+export const CLASSIFICATION_COLORS: Record<string, string> = {
+  unclassified: "#64748b",
+  official: "#0ea5e9",
+  confidential: "#f59e0b",
+  secret: "#ef4444",
+  top_secret: "#b91c1c",
+};
+
+export function classificationColor(level: string): string {
+  return CLASSIFICATION_COLORS[level] ?? "#64748b";
+}
+
+// Risk bands (#49).
+export const RISK_COLORS: Record<string, string> = {
+  low: "#22c55e",
+  medium: "#f59e0b",
+  high: "#ef4444",
+};

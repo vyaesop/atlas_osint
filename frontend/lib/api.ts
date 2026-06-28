@@ -11,13 +11,18 @@ import type {
   CurrentUser,
   DashboardResponse,
   Entity,
+  Facets,
   GraphResponse,
   IngestionResponse,
+  Lineage,
   MapResponse,
+  NetworkDiff,
   PathKind,
   PathsResponse,
   PatternOfLifeResponse,
   Relationship,
+  RiskListResponse,
+  RiskScore,
   SearchHit,
   Suggestion,
   SummaryResponse,
@@ -184,4 +189,17 @@ export const api = {
     });
     return request<ColocationResponse>(`/geo/colocation?${params.toString()}`);
   },
+
+  // --- Cluster 9 insights ---
+  facets: (type?: string) =>
+    request<Facets>(`/insights/facets${type ? `?type=${type}` : ""}`),
+
+  topRisk: (limit = 25) => request<RiskListResponse>(`/insights/risk?limit=${limit}`),
+
+  entityRisk: (id: string) => request<RiskScore>(`/insights/risk/${id}`),
+
+  diff: (sinceIso: string) =>
+    request<NetworkDiff>(`/insights/diff?since=${encodeURIComponent(sinceIso)}`),
+
+  lineage: (id: string) => request<Lineage>(`/insights/lineage/${id}`),
 };

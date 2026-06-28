@@ -11,12 +11,13 @@ export interface EntityNodeData {
   // Analytics overlays (optional):
   metricScore?: number;    // 0..1 normalized centrality, drives the ring scale
   communityColor?: string; // overrides accent when community coloring is on
+  colorOverride?: string;  // styling rules engine (#44): color-by attribute
   onPath?: boolean;        // node lies on a highlighted path
   aiGenerated?: boolean;   // extracted by AI, pending verification
 }
 
 function EntityNodeComponent({ data, selected }: NodeProps<EntityNodeData>) {
-  const accent = data.communityColor ?? entityColor(data.type);
+  const accent = data.colorOverride ?? data.communityColor ?? entityColor(data.type);
   const ring = data.onPath
     ? `0 0 0 2px ${PATH_HIGHLIGHT}`
     : selected

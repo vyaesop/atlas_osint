@@ -41,6 +41,12 @@ export default function ExplorePage() {
     <>
       <div className="fixed bottom-4 right-4 z-[1000] flex gap-2">
         <Link
+          href="/insights"
+          className="rounded-full bg-rose-700 px-4 py-2 text-xs font-semibold text-white shadow-lg hover:bg-rose-600"
+        >
+          📊 Insights
+        </Link>
+        <Link
           href="/timeline"
           className="rounded-full bg-sky-700 px-4 py-2 text-xs font-semibold text-white shadow-lg hover:bg-sky-600"
         >

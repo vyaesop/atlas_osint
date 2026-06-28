@@ -16,6 +16,9 @@ export type RelationshipType =
   | "REPORTED_BY" | "ASSOCIATED_WITH" | "MANAGES" | "SUPERVISES"
   | "FUNDED_BY" | "CONNECTED_TO";
 
+export type Classification =
+  | "unclassified" | "official" | "confidential" | "secret" | "top_secret";
+
 export interface Entity {
   id: string;
   type: EntityType;
@@ -25,6 +28,9 @@ export interface Entity {
   properties: Record<string, unknown>;
   confidence_score: number;
   is_ai_generated: boolean;
+  classification: Classification;
+  compartments: string[];
+  legal_hold: boolean;
   created_by: string | null;
   created_at: string;
   updated_at: string;
@@ -289,4 +295,69 @@ export interface CurrentUser {
   full_name: string | null;
   role: "admin" | "researcher" | "viewer";
   is_active: boolean;
+}
+
+// --- Cluster 9 insights ---
+export interface FacetBucket {
+  value: string;
+  count: number;
+}
+
+export interface Facets {
+  total: number;
+  by_type: FacetBucket[];
+  by_classification: FacetBucket[];
+  by_confidence: FacetBucket[];
+  by_provenance: FacetBucket[];
+  by_month: FacetBucket[];
+}
+
+export interface RiskScore {
+  entity_id: string;
+  name: string;
+  score: number;
+  band: string;
+  factors: Record<string, number>;
+  reasons: string[];
+}
+
+export interface RiskListResponse {
+  count: number;
+  results: RiskScore[];
+}
+
+export interface DiffItem {
+  id: string;
+  kind: string;
+  label: string;
+}
+
+export interface NetworkDiff {
+  since: string;
+  added_entities: DiffItem[];
+  modified_entities: DiffItem[];
+  added_relationships: DiffItem[];
+  modified_relationships: DiffItem[];
+  removed: DiffItem[];
+}
+
+export interface LineageNode {
+  id: string;
+  kind: string;
+  label: string;
+  ai_generated: boolean;
+  verified: boolean | null;
+}
+
+export interface LineageEdge {
+  source: string;
+  target: string;
+  relation: string;
+}
+
+export interface Lineage {
+  entity_id: string;
+  summary: string;
+  nodes: LineageNode[];
+  edges: LineageEdge[];
 }
