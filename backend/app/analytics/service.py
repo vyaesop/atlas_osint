@@ -8,14 +8,16 @@ from __future__ import annotations
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.analytics import advanced
+from app.analytics import advanced, structure
 from app.analytics.backend import AnalyticsBackend
 from app.analytics.graph_loader import GraphFilters, LoadedGraph, load_graph
 from app.analytics.models import (
     AnomalyResult,
     BrokerageResult,
+    CellResult,
     CentralityMetric,
     CommunityResult,
+    HierarchyResult,
     InfluenceResult,
     MotifResult,
     PathKind,
@@ -110,6 +112,18 @@ class AnalyticsService:
     ) -> tuple[MotifResult, LoadedGraph]:
         graph = await self._graph(db, filters)
         return advanced.motif_census(graph, limit=limit), graph
+
+    async def hierarchy(
+        self, db: AsyncSession, filters: GraphFilters
+    ) -> tuple[HierarchyResult, LoadedGraph]:
+        graph = await self._graph(db, filters)
+        return structure.infer_hierarchy(graph), graph
+
+    async def cells(
+        self, db: AsyncSession, filters: GraphFilters, *, min_size: int
+    ) -> tuple[CellResult, LoadedGraph]:
+        graph = await self._graph(db, filters)
+        return structure.detect_cells(graph, min_size=min_size), graph
 
 
 analytics_service = AnalyticsService()

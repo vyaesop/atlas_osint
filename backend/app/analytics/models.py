@@ -184,3 +184,42 @@ class MotifResult:
     triangle_count: int
     clique_size_distribution: dict[int, int] = field(default_factory=dict)
     motifs: list[Motif] = field(default_factory=list)
+
+
+# --------------------------------------------------------------------------- #
+# #15 — Hierarchy & cell-structure inference
+# --------------------------------------------------------------------------- #
+
+@dataclass(slots=True)
+class HierarchyNode:
+    id: str
+    name: str
+    type: str
+    level: int                 # 0 = top of chain
+    reports_to: list[str]      # immediate superiors (ids)
+    subordinate_count: int
+
+
+@dataclass(slots=True)
+class HierarchyResult:
+    is_acyclic: bool
+    max_depth: int
+    roots: list[str]
+    nodes: list[HierarchyNode] = field(default_factory=list)
+
+
+@dataclass(slots=True)
+class Cell:
+    id: int
+    size: int
+    topology: str              # hub_and_spoke | clique | chain | distributed
+    density: float
+    centralization: float
+    clustering: float
+    hub: RankedNode | None
+    members: list[RankedNode]
+
+
+@dataclass(slots=True)
+class CellResult:
+    cells: list[Cell] = field(default_factory=list)

@@ -175,6 +175,43 @@ class MotifsResponse(BaseModel):
     motifs: list[MotifRead]
 
 
+# --- #15 hierarchy & cells ---
+
+class HierarchyNodeRead(BaseModel):
+    id: uuid.UUID
+    name: str
+    type: str
+    level: int
+    reports_to: list[uuid.UUID]
+    subordinate_count: int
+
+
+class HierarchyResponse(BaseModel):
+    graph_order: int
+    truncated: bool
+    is_acyclic: bool
+    max_depth: int
+    roots: list[uuid.UUID]
+    nodes: list[HierarchyNodeRead]
+
+
+class CellRead(BaseModel):
+    id: int
+    size: int
+    topology: str
+    density: float
+    centralization: float
+    clustering: float
+    hub: RankedNodeRead | None
+    members: list[RankedNodeRead]
+
+
+class CellsResponse(BaseModel):
+    graph_order: int
+    truncated: bool
+    cells: list[CellRead]
+
+
 # Reusable query-filter doc (kept here for discoverability).
 class AnalyticsFilterInfo(BaseModel):
     type: list[EntityType] | None = None

@@ -14,6 +14,7 @@ from app.api.v1 import (
     imports,
     ingestion,
     relationships,
+    resolution,
     search,
     users,
 )
@@ -34,3 +35,4 @@ api_router.include_router(imports.router)
 api_router.include_router(ach.router)
 api_router.include_router(annotations.router)
 api_router.include_router(geo.router)
+api_router.include_router(resolution.router)

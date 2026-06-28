@@ -91,4 +91,7 @@ async def _safe_write(query: str, **params: Any) -> None:
     try:
         await neo4j_client.run_write(query, **params)
     except Exception:  # pragma: no cover - defensive
-        logger.exception("Neo4j projection failed for query: %s", query.split("\n")[1])
+        # First non-blank line identifies the query without assuming it spans
+        # multiple lines (single-line queries like DETACH DELETE used to IndexError).
+        summary = next((line.strip() for line in query.splitlines() if line.strip()), query)
+        logger.exception("Neo4j projection failed for query: %s", summary)

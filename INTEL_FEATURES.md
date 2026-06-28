@@ -63,12 +63,20 @@ markers, movement polyline, co-location panel), `/map` route + explorer link.
 Added deps: `leaflet`, `react-leaflet`, `@types/leaflet`. 11 new tests. Backend
 110 passing; frontend `tsc` + `next build` clean.
 
-## Cluster 4 — Relationship & Entity Intelligence
+## Cluster 4 — Relationship & Entity Intelligence ✅ DONE
 | # | Feature | Status |
 |---|---------|--------|
 | 12 | Link prediction / suggested edges (Adamic-Adar, common-neighbor) | ✅ (via `/analytics/brokers` suggested_links) |
-| 13 | Entity resolution / deduplication with merge-unmerge audit | ⬜ |
-| 15 | Cell / org-hierarchy structure inference | ⬜ |
+| 13 | Entity resolution / deduplication with merge-unmerge audit | ✅ |
+| 15 | Cell / org-hierarchy structure inference | ✅ |
+
+**Delivered:** #13 entity resolution — blocked similarity detection
+(`services/entity_resolution.py`), reversible **merge/unmerge** via `EntityMerge`
+record (migration `0006`), `/api/v1/resolution/` (duplicates, merge, merges,
+unmerge). #15 — `analytics/structure.py` chain-of-command hierarchy (MANAGES/
+SUPERVISES layering + cycle detection) and cell-topology classification
+(hub_and_spoke/clique/chain/distributed) at `/analytics/hierarchy` & `/cells`.
+Also hardened a latent `graph_sync` logging bug. 17 new tests; 124 passing.
 
 ## Cluster 5 — OSINT & Ingestion
 | # | Feature | Status |
@@ -135,3 +143,5 @@ Added deps: `leaflet`, `react-leaflet`, `@types/leaflet`. 11 new tests. Backend
 - **2026-06-28** — Codebase pushed to github.com/vyaesop/atlas_osint (private).
 - **2026-06-28** — ✅ Cluster 3 complete: added #10 temporal replay (explorer
   scrubber) + #11 N-entity swimlanes (`/timeline`). Build clean. Starting Cluster 4.
+- **2026-06-28** — ✅ Cluster 4 complete: #13 entity resolution (merge/unmerge,
+  migration 0006) + #15 hierarchy & cell-topology inference. 124 tests passing.

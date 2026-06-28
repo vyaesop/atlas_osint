@@ -18,9 +18,13 @@ from app.schemas.analytics import (
     AnomalyRead,
     BrokerageResponse,
     BrokerNodeRead,
+    CellRead,
+    CellsResponse,
     CentralityResponse,
     CommunitiesResponse,
     CommunityRead,
+    HierarchyNodeRead,
+    HierarchyResponse,
     InfluenceNodeRead,
     InfluenceResponse,
     MotifRead,
@@ -372,5 +376,61 @@ async def motifs(
         motifs=[
             MotifRead(kind=m.kind, nodes=[_node(n) for n in m.nodes], weight=m.weight)
             for m in result.motifs
+        ],
+    )
+
+
+@router.get("/hierarchy", response_model=HierarchyResponse)
+async def hierarchy(
+    type: list[EntityType] | None = Query(default=None),
+    relationship_type: list[RelationshipType] | None = Query(default=None),
+    min_confidence: float = Query(default=0.0, ge=0.0, le=1.0),
+    ego_entity_id: uuid.UUID | None = Query(default=None),
+    depth: int = Query(default=2, ge=1, le=4),
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(get_current_user),
+):
+    """Infer chain of command from MANAGES/SUPERVISES edges (#15): layered
+    hierarchy, who-reports-to-whom, depth, and cycle detection."""
+    filters = _filters(type, relationship_type, min_confidence, ego_entity_id, depth)
+    result, graph = await analytics_service.hierarchy(db, filters)
+    return HierarchyResponse(
+        graph_order=graph.order, truncated=graph.truncated,
+        is_acyclic=result.is_acyclic, max_depth=result.max_depth, roots=result.roots,
+        nodes=[
+            HierarchyNodeRead(
+                id=n.id, name=n.name, type=n.type, level=n.level,
+                reports_to=n.reports_to, subordinate_count=n.subordinate_count,
+            )
+            for n in result.nodes
+        ],
+    )
+
+
+@router.get("/cells", response_model=CellsResponse)
+async def cells(
+    min_size: int = Query(default=3, ge=2, le=1000),
+    type: list[EntityType] | None = Query(default=None),
+    relationship_type: list[RelationshipType] | None = Query(default=None),
+    min_confidence: float = Query(default=0.0, ge=0.0, le=1.0),
+    ego_entity_id: uuid.UUID | None = Query(default=None),
+    depth: int = Query(default=2, ge=1, le=4),
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(get_current_user),
+):
+    """Classify each detected community's internal topology (#15):
+    hub_and_spoke / clique / chain / distributed."""
+    filters = _filters(type, relationship_type, min_confidence, ego_entity_id, depth)
+    result, graph = await analytics_service.cells(db, filters, min_size=min_size)
+    return CellsResponse(
+        graph_order=graph.order, truncated=graph.truncated,
+        cells=[
+            CellRead(
+                id=c.id, size=c.size, topology=c.topology, density=c.density,
+                centralization=c.centralization, clustering=c.clustering,
+                hub=_node(c.hub) if c.hub else None,
+                members=[_node(m) for m in c.members],
+            )
+            for c in result.cells
         ],
     )
